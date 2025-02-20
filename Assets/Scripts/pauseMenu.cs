@@ -2,7 +2,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using Valve.VR;
 using Valve.VR.InteractionSystem;
-
+using System.Threading;
 public class pauseMenu : MonoBehaviour
 {
     [Header("Settings")]
@@ -11,10 +11,12 @@ public class pauseMenu : MonoBehaviour
     public MonoBehaviour moveScript;
 
     private bool paused = false;
+    private bool flag = false;
     private void Update()
     {
-        if (pauseGame.GetState(SteamVR_Input_Sources.Any))
+        if (pauseGame.GetState(SteamVR_Input_Sources.Any) && flag == false)
         {
+            flag = true;
             if (paused == false)
             {
                 Pause();
@@ -25,6 +27,10 @@ public class pauseMenu : MonoBehaviour
                 Resume();
                 paused = false;
             }
+        }
+        else if (!pauseGame.GetState(SteamVR_Input_Sources.Any))
+        {
+            flag = false;
         }
     }
     public void Pause()

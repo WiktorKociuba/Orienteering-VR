@@ -17,7 +17,7 @@ public class lineRendererSettings : MonoBehaviour
     public LayerMask layerMask;
     public GameObject panel;
     public Image img;
-    public Image demoMapImg;
+    public GameObject demoMapImg;
     public Button btn;
     public Button start;
     public Button exit;
@@ -36,17 +36,12 @@ public class lineRendererSettings : MonoBehaviour
             rend.endColor = Color.red;
             btn = hit.collider.gameObject.GetComponent<Button>();
             hitBtn = true;
-            if(btn.name == "demoMap")
-            {
-                demoMapImg.gameObject.SetActive(true);
-            }
         }
         else
         {
             points[1] = transform.forward + new Vector3(0, 0, 20);
             rend.startColor = Color.blue;
             rend.endColor = Color.blue;
-            demoMapImg.gameObject.SetActive(false);
         }
         rend.SetPositions(points);
         rend.material.color = rend.startColor;
@@ -61,6 +56,7 @@ public class lineRendererSettings : MonoBehaviour
                 start.gameObject.SetActive(false);
                 exit.gameObject.SetActive(false);
                 demoMap.gameObject.SetActive(true);
+                demoMapImg.gameObject.SetActive(true);
             }
             else if (btn.name == "Exit")
             {
@@ -68,6 +64,7 @@ public class lineRendererSettings : MonoBehaviour
             }
             else if(btn.name == "demoMap")
             {
+                SceneManager.UnloadSceneAsync("mainMenu");
                 SceneManager.LoadScene("demoMap");
             }
         }
