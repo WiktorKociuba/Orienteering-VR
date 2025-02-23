@@ -52,7 +52,7 @@ public class MovePlayer : MonoBehaviour
     private bool OnSlope()
     {
         Vector3 rayOrigin = body.position + Vector3.up * slopeRaycastOffset;
-        if (Physics.Raycast(body.position, Vector3.down, out RaycastHit hit, slopeRayLength)){
+        if (Physics.Raycast(body.position, Vector3.down, out RaycastHit hit, slopeRayLength) && hit.transform.tag == "Terrain"){
             return Vector3.Angle(hit.normal, Vector3.up) > 5 && Vector3.Angle(hit.normal, Vector3.up) < 45;
         }
         return false;

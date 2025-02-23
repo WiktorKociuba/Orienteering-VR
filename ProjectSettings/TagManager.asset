@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 3
   tags:
   - Checkpoint
+  - Terrain
+  - needleColider
   layers:
   - Default
   - TransparentFX
@@ -13,9 +15,9 @@ TagManager:
   - Water
   - UI
   - Pickupable
-  - 
-  - 
-  - 
+  - Terrain
+  - needleColider
+  - needle
   - 
   - 
   - 
