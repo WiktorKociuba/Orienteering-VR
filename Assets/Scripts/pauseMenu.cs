@@ -10,8 +10,8 @@ public class pauseMenu : MonoBehaviour
     public GameObject pauseMenuUI;
     public MonoBehaviour moveScript;
 
-    private bool paused = false;
-    private bool flag = false;
+    public bool paused = false;
+    public bool flag = false;
     private void Update()
     {
         if (pauseGame.GetState(SteamVR_Input_Sources.Any) && flag == false)

@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -22,6 +21,8 @@ public class lineRendererSettings : MonoBehaviour
     public Button start;
     public Button exit;
     public Button demoMap;
+    public bool menu;
+    public pauseMenu pauseMenuScript;
 
     Vector3[] points;
     public bool AlignLineRenderer(LineRenderer rend) // Make the line follow Ray
@@ -67,6 +68,18 @@ public class lineRendererSettings : MonoBehaviour
                 SceneManager.UnloadSceneAsync("mainMenu");
                 SceneManager.LoadScene("demoMap");
             }
+            else if(btn.name == "exitMenu"){
+                Application.Quit();
+            }
+            else if(btn.name == "Resume"){
+                rend.enabled = false;
+                if(pauseMenuScript != null)
+                {
+                    pauseMenuScript.paused = false;
+                    pauseMenuScript.Resume();
+                    pauseMenuScript.flag = false;
+                }
+            }
         }
     }
     private void Start() // Set up the initial line
@@ -77,7 +90,14 @@ public class lineRendererSettings : MonoBehaviour
         points[0] = Vector3.zero;
         points[1] = transform.position + new Vector3(0, 0, 20);
         rend.SetPositions(points);
-        rend.enabled = true;
+        if(menu)
+        {
+            rend.enabled = true;
+        }
+        else
+        {
+            rend.enabled = false;
+        }
     }
     private void Update()
     {
@@ -91,6 +111,9 @@ public class lineRendererSettings : MonoBehaviour
         if (AlignLineRenderer(rend) && submitValue)
         {
             btn.onClick.Invoke();
+        }
+        if (pauseMenuScript != null && pauseMenuScript.paused == true){
+            rend.enabled = true;
         }
     }
 }
