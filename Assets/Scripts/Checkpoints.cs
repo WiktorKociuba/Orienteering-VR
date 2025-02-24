@@ -56,8 +56,8 @@ public class Checkpoints : MonoBehaviour
                     {
                         timeToTeleport += Time.deltaTime;
                     }
-                    //SceneManager.UnloadSceneAsync("demoMap");
-                    //SceneManager.LoadScene("mainMenu");
+                    SceneManager.UnloadSceneAsync("demoMap");
+                    SceneManager.LoadScene("mainMenu");
                 }
             }
             for (int i = 0; i < checkpoints.Length; i++)
