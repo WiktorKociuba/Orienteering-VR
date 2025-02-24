@@ -1,5 +1,7 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class Checkpoints : MonoBehaviour
 {
@@ -11,13 +13,16 @@ public class Checkpoints : MonoBehaviour
     [Header("GUI")]
     public TextMeshProUGUI timeText;
 
+    [Header("Player")]
+    public GameObject player;
+
     [Header("Information")]
     private float currentCheckpoint;
     private bool started;
     private bool finished;
 
     private float time;
-
+    private float timeToTeleport;
     private void Start()
     {
         currentCheckpoint = 0;
@@ -50,6 +55,13 @@ public class Checkpoints : MonoBehaviour
                 {
                     print($"Finished, time: {time}");
                     finished = true;
+                    while(timeToTeleport < 5000)
+                    {
+                        timeToTeleport += Time.deltaTime;
+                    }
+                    SceneManager.UnloadSceneAsync("demoMap");
+                    SceneManager.LoadScene("mainMenu");
+                    Destroy(player);
                 }
             }
             for (int i = 0; i < checkpoints.Length; i++)

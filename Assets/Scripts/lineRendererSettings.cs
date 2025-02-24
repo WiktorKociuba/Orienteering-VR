@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -11,18 +10,21 @@ using Valve.VR.InteractionSystem;
 public class lineRendererSettings : MonoBehaviour
 {
     [SerializeField] LineRenderer rend;
+    [SerializeField] LineRenderer rend2;
 
     [Header("Settings")]
     public SteamVR_Action_Boolean Submit;
     public LayerMask layerMask;
     public GameObject panel;
     public Image img;
-    public Image demoMapImg;
+    public GameObject demoMapImg;
     public Button btn;
     public Button start;
     public Button exit;
     public Button demoMap;
-
+    public bool menu;
+    public pauseMenu pauseMenuScript;
+    public GameObject player;
     Vector3[] points;
     public bool AlignLineRenderer(LineRenderer rend) // Make the line follow Ray
     {
@@ -36,17 +38,12 @@ public class lineRendererSettings : MonoBehaviour
             rend.endColor = Color.red;
             btn = hit.collider.gameObject.GetComponent<Button>();
             hitBtn = true;
-            if(btn.name == "demoMap")
-            {
-                demoMapImg.gameObject.SetActive(true);
-            }
         }
         else
         {
             points[1] = transform.forward + new Vector3(0, 0, 20);
             rend.startColor = Color.blue;
             rend.endColor = Color.blue;
-            demoMapImg.gameObject.SetActive(false);
         }
         rend.SetPositions(points);
         rend.material.color = rend.startColor;
@@ -61,6 +58,7 @@ public class lineRendererSettings : MonoBehaviour
                 start.gameObject.SetActive(false);
                 exit.gameObject.SetActive(false);
                 demoMap.gameObject.SetActive(true);
+                demoMapImg.gameObject.SetActive(true);
             }
             else if (btn.name == "Exit")
             {
@@ -68,7 +66,24 @@ public class lineRendererSettings : MonoBehaviour
             }
             else if(btn.name == "demoMap")
             {
+                SceneManager.UnloadSceneAsync("mainMenu");
                 SceneManager.LoadScene("demoMap");
+                Destroy(player);
+            }
+            else if(btn.name == "exitMenu"){
+                SceneManager.UnloadSceneAsync("demoMap");
+                SceneManager.LoadScene("mainMenu");
+                Destroy(player);
+            }
+            else if(btn.name == "Resume"){
+                rend.enabled = false;
+                rend2.enabled = false;
+                if(pauseMenuScript != null)
+                {
+                    pauseMenuScript.paused = false;
+                    pauseMenuScript.Resume();
+                    pauseMenuScript.flag = false;
+                }
             }
         }
     }
@@ -80,7 +95,14 @@ public class lineRendererSettings : MonoBehaviour
         points[0] = Vector3.zero;
         points[1] = transform.position + new Vector3(0, 0, 20);
         rend.SetPositions(points);
-        rend.enabled = true;
+        if(menu)
+        {
+            rend.enabled = true;
+        }
+        else
+        {
+            rend.enabled = false;
+        }
     }
     private void Update()
     {
@@ -94,6 +116,9 @@ public class lineRendererSettings : MonoBehaviour
         if (AlignLineRenderer(rend) && submitValue)
         {
             btn.onClick.Invoke();
+        }
+        if (pauseMenuScript != null && pauseMenuScript.paused == true){
+            rend.enabled = true;
         }
     }
 }

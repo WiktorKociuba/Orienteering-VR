@@ -1,5 +1,4 @@
 using Unity.VisualScripting;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Valve.VR;
@@ -28,7 +27,9 @@ public class MovePlayer : MonoBehaviour
         Vector2 input = moveValue.axis;
         if (input.sqrMagnitude > 0.05f)
         {
-            movementDirection = Player.instance.hmdTransform.TransformDirection(new Vector3(moveValue.axis.x, 0, moveValue.axis.y));
+            Vector3 forward = new Vector3(Player.instance.hmdTransform.forward.x, 0, Player.instance.hmdTransform.forward.z).normalized;
+            movementDirection = new Vector3(input.x,0,input.y).normalized;
+            movementDirection = Quaternion.LookRotation(forward) * movementDirection;
             speed = Mathf.Lerp(speed, maxSpeed * input.magnitude * sensitivity, Time.fixedDeltaTime * acceleration);
             if (OnSlope())
             {
@@ -49,8 +50,8 @@ public class MovePlayer : MonoBehaviour
 
     private bool OnSlope()
     {
-        Vector3 rayOrigin = body.position + movementDirection * slopeRaycastOffset;
-        if (Physics.Raycast(body.position, Vector3.down, out RaycastHit hit, slopeRayLength)){
+        Vector3 rayOrigin = body.position + Vector3.up * slopeRaycastOffset;
+        if (Physics.Raycast(body.position, Vector3.down, out RaycastHit hit, slopeRayLength) && hit.transform.tag == "Terrain"){
             return Vector3.Angle(hit.normal, Vector3.up) > 5 && Vector3.Angle(hit.normal, Vector3.up) < 45;
         }
         return false;

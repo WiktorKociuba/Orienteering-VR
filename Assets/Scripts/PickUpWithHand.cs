@@ -27,7 +27,7 @@ public class PickUpWithHand : MonoBehaviour
                 grabOffset = Quaternion.Inverse(transform.rotation) * holdingObject.transform.rotation;
             }
         }
-        else
+        else if(handClosed && holdingObject != null)
         {
             holdingObject.linearVelocity = (transform.position - holdingObject.transform.position) / Time.fixedDeltaTime;
             
