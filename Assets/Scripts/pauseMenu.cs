@@ -5,6 +5,9 @@ using Valve.VR.InteractionSystem;
 using System.Threading;
 public class pauseMenu : MonoBehaviour
 {
+[SerializeField] LineRenderer rend;
+[SerializeField] LineRenderer rend2;
+
     [Header("Settings")]
     public SteamVR_Action_Boolean pauseGame;
     public GameObject pauseMenuUI;
@@ -44,5 +47,7 @@ public class pauseMenu : MonoBehaviour
         pauseMenuUI.SetActive(false);
         Time.timeScale = 1f;
         moveScript.enabled = true;
+        rend.enabled = false;
+        rend2.enabled = false;
     }
 }

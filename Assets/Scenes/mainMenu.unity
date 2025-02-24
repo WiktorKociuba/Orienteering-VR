@@ -1405,7 +1405,7 @@ GameObject:
   - component: {fileID: 807967088}
   - component: {fileID: 807967087}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: Menu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2287,7 +2287,7 @@ GameObject:
   - component: {fileID: 1287268551}
   - component: {fileID: 1287268550}
   m_Layer: 0
-  m_Name: Cube (1)
+  m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2453,7 +2453,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1326393868}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5113816fe4e3f2348a2cdcfa0659adf2, type: 3}
   m_Name: 
@@ -2472,7 +2472,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1326393868}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 765ae7073adc24a40b5475640b1acfe1, type: 3}
   m_Name: 
@@ -2484,6 +2484,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   timeText: {fileID: 1741600994}
+  player: {fileID: 0}
 --- !u!136 &1326393871
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2541,7 +2542,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1326393868}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db678049edf4b5043b0827e290a228b2, type: 3}
   m_Name: 
@@ -2677,6 +2678,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rend: {fileID: 1432642937}
+  rend2: {fileID: 2104471657}
   Submit:
     actionPath: /actions/default/in/Submit
     needsReinit: 0
@@ -2692,6 +2694,7 @@ MonoBehaviour:
   demoMap: {fileID: 1539542666}
   menu: 1
   pauseMenuScript: {fileID: 0}
+  player: {fileID: 1287268549}
 --- !u!120 &1432642937
 LineRenderer:
   serializedVersion: 2
@@ -3409,6 +3412,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rend: {fileID: 2104471657}
+  rend2: {fileID: 1432642937}
   Submit:
     actionPath: /actions/default/in/Submit
     needsReinit: 0
@@ -3424,6 +3428,7 @@ MonoBehaviour:
   demoMap: {fileID: 1539542666}
   menu: 1
   pauseMenuScript: {fileID: 0}
+  player: {fileID: 1287268549}
 --- !u!120 &2104471657
 LineRenderer:
   serializedVersion: 2

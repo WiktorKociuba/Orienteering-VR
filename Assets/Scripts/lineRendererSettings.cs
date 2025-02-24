@@ -10,6 +10,7 @@ using Valve.VR.InteractionSystem;
 public class lineRendererSettings : MonoBehaviour
 {
     [SerializeField] LineRenderer rend;
+    [SerializeField] LineRenderer rend2;
 
     [Header("Settings")]
     public SteamVR_Action_Boolean Submit;
@@ -23,7 +24,7 @@ public class lineRendererSettings : MonoBehaviour
     public Button demoMap;
     public bool menu;
     public pauseMenu pauseMenuScript;
-
+    public GameObject player;
     Vector3[] points;
     public bool AlignLineRenderer(LineRenderer rend) // Make the line follow Ray
     {
@@ -67,12 +68,16 @@ public class lineRendererSettings : MonoBehaviour
             {
                 SceneManager.UnloadSceneAsync("mainMenu");
                 SceneManager.LoadScene("demoMap");
+                Destroy(player);
             }
             else if(btn.name == "exitMenu"){
-                Application.Quit();
+                SceneManager.UnloadSceneAsync("demoMap");
+                SceneManager.LoadScene("mainMenu");
+                Destroy(player);
             }
             else if(btn.name == "Resume"){
                 rend.enabled = false;
+                rend2.enabled = false;
                 if(pauseMenuScript != null)
                 {
                     pauseMenuScript.paused = false;
