@@ -20,6 +20,7 @@ public class Checkpoints : MonoBehaviour
     private float currentCheckpoint;
     private bool started;
     private bool finished;
+    public string punchedControl;
 
     private float time;
     private float timeToTeleport;
@@ -46,6 +47,7 @@ public class Checkpoints : MonoBehaviour
 
             if (thisCheckpoint == start && !started)
             {
+                punchedControl = "Start";
                 print("Start");
                 started = true;
             }
@@ -53,6 +55,7 @@ public class Checkpoints : MonoBehaviour
             {
                 if(currentCheckpoint == checkpoints.Length)
                 {
+                    punchedControl = "Finish";
                     print($"Finished, time: {time}");
                     finished = true;
                     while(timeToTeleport < 5000)
@@ -72,6 +75,7 @@ public class Checkpoints : MonoBehaviour
                 {
                     currentCheckpoint++;
                     print($"Control {thisCheckpoint}");
+                    punchedControl = thisCheckpoint.name;
                 }
             }
         }
