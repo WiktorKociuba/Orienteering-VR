@@ -17,10 +17,17 @@ public class MovePlayer : MonoBehaviour
     public float slopeForce;
     public float slopeRayLength;
     public Rigidbody body;
+    public int slowZone;
 
+    public float maxSpeedConst;
     private Vector3 movementDirection;
     private float speed = 0.0f;
     private float slopeRaycastOffset = 0.5f;
+
+    private void Start()
+    {
+        maxSpeedConst = maxSpeed;
+    }
 
     private void FixedUpdate()
     {
