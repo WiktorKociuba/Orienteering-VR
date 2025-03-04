@@ -46,8 +46,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Depth: 0.19
-    - _Displacement: -0.97
+    - _Depth: 0.38
+    - _Displacement: -0.48
     - _Normal_Strength: 1
     - _QueueControl: 0
     - _QueueOffset: 0
