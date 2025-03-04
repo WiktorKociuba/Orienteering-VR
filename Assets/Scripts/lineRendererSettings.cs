@@ -64,9 +64,9 @@ public class lineRendererSettings : MonoBehaviour
             }
             else if(btn.name == "demoMap")
             {
+                Destroy(player);
                 SceneManager.UnloadSceneAsync("mainMenu");
                 SceneManager.LoadScene("demoMap");
-                Destroy(player);
             }
             else if(btn.name == "exitMenu"){
                 SceneManager.UnloadSceneAsync("demoMap");
