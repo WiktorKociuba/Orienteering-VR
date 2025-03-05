@@ -17,7 +17,6 @@ public class lineRendererSettings : MonoBehaviour
     public LayerMask layerMask;
     public GameObject panel;
     public Image img;
-    public GameObject demoMapImg;
     public Button btn;
     public Button start;
     public Button exit;
@@ -58,7 +57,6 @@ public class lineRendererSettings : MonoBehaviour
                 start.gameObject.SetActive(false);
                 exit.gameObject.SetActive(false);
                 demoMap.gameObject.SetActive(true);
-                demoMapImg.gameObject.SetActive(true);
             }
             else if (btn.name == "Exit")
             {
@@ -66,9 +64,9 @@ public class lineRendererSettings : MonoBehaviour
             }
             else if(btn.name == "demoMap")
             {
+                Destroy(player);
                 SceneManager.UnloadSceneAsync("mainMenu");
                 SceneManager.LoadScene("demoMap");
-                Destroy(player);
             }
             else if(btn.name == "exitMenu"){
                 SceneManager.UnloadSceneAsync("demoMap");
