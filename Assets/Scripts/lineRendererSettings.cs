@@ -24,6 +24,7 @@ public class lineRendererSettings : MonoBehaviour
     public bool menu;
     public pauseMenu pauseMenuScript;
     public GameObject player;
+    public GameObject level1;
     Vector3[] points;
     public bool AlignLineRenderer(LineRenderer rend) // Make the line follow Ray
     {
@@ -64,6 +65,10 @@ public class lineRendererSettings : MonoBehaviour
             }
             else if(btn.name == "demoMap")
             {
+                demoMap.gameObject.SetActive(false);
+                level1.gameObject.SetActive(true);
+            }
+            else if(btn.name == "map"){
                 Destroy(player);
                 SceneManager.UnloadSceneAsync("mainMenu");
                 SceneManager.LoadScene("demoMap");

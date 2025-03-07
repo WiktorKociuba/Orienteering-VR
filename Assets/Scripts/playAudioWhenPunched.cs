@@ -18,6 +18,7 @@ public class playAudioWhenPunched : MonoBehaviour
     {
         if (!ifPunched && checkpoints.punchedControl == controlName)
         {
+            print($"Played sound {checkpoints.punchedControl}");
             audioSource.clip = punchControlSound;
             audioSource.Play();
             ifPunched = true;
