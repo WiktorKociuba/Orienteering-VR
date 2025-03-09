@@ -24,30 +24,30 @@ MonoBehaviour:
   layerFading: 0100000000000000
   VertexColorSettings: 0
   VertexFade: 0
-  sizeWidth: 0.104
-  sizeLength: 0.255
+  sizeWidth: 0.255
+  sizeLength: 0.604
   adjustWidth: 0
-  adjustLength: 0
+  adjustLength: 0.29
   adjustWidthMax: 2
   adjustHeightMax: 2
   reprojectOffset: 1
   rangeR: 0
   rangeG: 1
   rangeB: 0
-  AdjustedColor: {r: 0.17067742, g: 0.2679245, b: 0.110708416, a: 1}
+  AdjustedColor: {r: 0.23137257, g: 0.32156864, b: 0.25882354, a: 1}
   paintBlockMask:
     serializedVersion: 2
-    m_Bits: 16
+    m_Bits: 0
   hitMask:
     serializedVersion: 2
     m_Bits: 128
   paintMask:
     serializedVersion: 2
     m_Bits: 128
-  brushSize: 4
+  brushSize: 50
   brushFalloffSize: 0.8
   Flow: 0.1
-  density: 0.71
+  density: 3.85
   normalLimit: 1
-  grassAmountToGenerate: 200000
-  generationDensity: 1
+  grassAmountToGenerate: 1000000
+  generationDensity: 0.622
