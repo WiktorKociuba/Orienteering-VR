@@ -26,10 +26,10 @@ MonoBehaviour:
   VertexFade: 0
   sizeWidth: 0.255
   sizeLength: 0.604
-  adjustWidth: 0
-  adjustLength: 0.29
-  adjustWidthMax: 2
-  adjustHeightMax: 2
+  adjustWidth: 0.005
+  adjustLength: 1
+  adjustWidthMax: 2.21
+  adjustHeightMax: 2.669
   reprojectOffset: 1
   rangeR: 0
   rangeG: 1
@@ -44,7 +44,7 @@ MonoBehaviour:
   paintMask:
     serializedVersion: 2
     m_Bits: 128
-  brushSize: 50
+  brushSize: 3.7
   brushFalloffSize: 0.8
   Flow: 0.1
   density: 3.85
