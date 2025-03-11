@@ -62,7 +62,7 @@ public class Checkpoints : MonoBehaviour
                     {
                         timeToTeleport += Time.deltaTime;
                     }
-                    SceneManager.UnloadSceneAsync("demoMap");
+                    SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().name);
                     SceneManager.LoadScene("mainMenu");
                     Destroy(player);
                 }

@@ -68,6 +68,7 @@ public class lineRendererSettings : MonoBehaviour
             }
             else if(btn.name == "demoMap")
             {
+                map1.gameObject.SetActive(false);
                 demoMap.gameObject.SetActive(false);
                 level1.gameObject.SetActive(true);
             }
@@ -77,7 +78,7 @@ public class lineRendererSettings : MonoBehaviour
                 SceneManager.LoadScene("demoMap");
             }
             else if(btn.name == "exitMenu"){
-                SceneManager.UnloadSceneAsync("demoMap");
+                SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().name);
                 SceneManager.LoadScene("mainMenu");
                 Destroy(player);
             }
@@ -94,6 +95,7 @@ public class lineRendererSettings : MonoBehaviour
             else if(btn.name == "map1")
             {
                 map1.gameObject.SetActive(false);
+                demoMap.gameObject.SetActive(false);
                 map1course1.gameObject.SetActive(true);
             }
             else if(btn.name == "map1course1")
