@@ -21,10 +21,12 @@ public class lineRendererSettings : MonoBehaviour
     public Button start;
     public Button exit;
     public Button demoMap;
+    public Button map1;
     public bool menu;
     public pauseMenu pauseMenuScript;
     public GameObject player;
     public GameObject level1;
+    public GameObject map1course1;
     Vector3[] points;
     public bool AlignLineRenderer(LineRenderer rend) // Make the line follow Ray
     {
@@ -49,7 +51,7 @@ public class lineRendererSettings : MonoBehaviour
         rend.material.color = rend.startColor;
         return hitBtn;
     }
-    public void OnClick() // Do smth when button is clicked
+    public void OnClick()
     {
         if (btn != null)
         {
@@ -58,6 +60,7 @@ public class lineRendererSettings : MonoBehaviour
                 start.gameObject.SetActive(false);
                 exit.gameObject.SetActive(false);
                 demoMap.gameObject.SetActive(true);
+                map1.gameObject.SetActive(true);
             }
             else if (btn.name == "Exit")
             {
@@ -87,6 +90,17 @@ public class lineRendererSettings : MonoBehaviour
                     pauseMenuScript.Resume();
                     pauseMenuScript.flag = false;
                 }
+            }
+            else if(btn.name == "map1")
+            {
+                map1.gameObject.SetActive(false);
+                map1course1.gameObject.SetActive(true);
+            }
+            else if(btn.name == "map1course1")
+            {
+                Destroy(player);
+                SceneManager.UnloadSceneAsync("mainMenu");
+                SceneManager.LoadScene("map1");
             }
         }
     }
