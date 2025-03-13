@@ -31,7 +31,7 @@ MonoBehaviour:
   affectStrength: 1
   topTint: {r: 1, g: 1, b: 1, a: 1}
   bottomTint: {r: 0, g: 0, b: 1, a: 1}
-  drawBounds: 1
+  drawBounds: 0
   minFadeDistance: 40
   maxDrawDistance: 125
   cullingTreeDepth: 4
