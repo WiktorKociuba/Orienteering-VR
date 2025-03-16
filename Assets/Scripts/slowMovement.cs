@@ -4,6 +4,9 @@ public class slowMovement : MonoBehaviour
 {
     [Header("Settings")]
     public MovePlayer movePlayer;
+    public MovePlayerPC movePlayerPC;
+    public GameObject Player;
+    public GameObject PlayerPC;
     public float newSpeed;
     public int slowZone;
 
@@ -11,15 +14,33 @@ public class slowMovement : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Player"))
         {
-            if (movePlayer.slowZone == slowZone)
+            if(Player.activeSelf)
             {
-                movePlayer.maxSpeed = movePlayer.maxSpeedConst;
-                movePlayer.slowZone = 0;
+                if (movePlayer.slowZone == slowZone)
+                {
+                    movePlayer.maxSpeed = movePlayer.maxSpeedConst;
+                    movePlayer.slowZone = 0;
+                }
+                else
+                {
+                    movePlayer.slowZone = slowZone;
+                    movePlayer.maxSpeed = newSpeed;
+                }
             }
-            else
+            if(PlayerPC.activeSelf)
             {
-                movePlayer.slowZone = slowZone;
-                movePlayer.maxSpeed = newSpeed;
+                if (movePlayerPC.slowZone == slowZone)
+                {
+                    movePlayerPC.maxSpeed = movePlayerPC.maxSpeedConst;
+                    movePlayerPC.slowZone = 0;
+                    print("out");
+                }
+                else
+                {
+                    movePlayerPC.slowZone = slowZone;
+                    movePlayerPC.maxSpeed = newSpeed;
+                    print("in");
+                }
             }
         }
     }

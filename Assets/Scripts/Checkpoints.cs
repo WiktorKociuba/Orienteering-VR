@@ -58,7 +58,7 @@ public class Checkpoints : MonoBehaviour
                     punchedControl = "Finish";
                     print($"Finished, time: {time}");
                     finished = true;
-                    while(timeToTeleport < 5000)
+                    while(timeToTeleport < 50000)
                     {
                         timeToTeleport += Time.deltaTime;
                     }
