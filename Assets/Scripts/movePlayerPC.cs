@@ -46,7 +46,6 @@ public class MovePlayerPC : MonoBehaviour
             {
                 Vector3 slopeDirection = Vector3.ProjectOnPlane(movementDirection, GetGroundNormal()).normalized;
                 body.AddForce(slopeDirection * speed * slopeForce, ForceMode.Acceleration);
-                body.AddForce(Vector3.up, ForceMode.Acceleration);
             }
             else
             {
