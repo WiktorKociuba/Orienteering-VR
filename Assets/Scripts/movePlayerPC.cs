@@ -24,6 +24,8 @@ public class MovePlayerPC : MonoBehaviour
     private float slopeRaycastOffset = 0.5f;
     private InputAction moveValue;
     private float verticalRotation = 0.0f;
+    private float slopeAngle;
+    private float calcSlopeForce;
     private void Start()
     {
         maxSpeedConst = maxSpeed;
@@ -44,8 +46,18 @@ public class MovePlayerPC : MonoBehaviour
             speed = Mathf.Lerp(speed, maxSpeed * input.magnitude * sensitivity, Time.fixedDeltaTime * acceleration);
             if (OnSlope())
             {
+                slopeAngle /= 100;
+                if(slopeAngle < 30)
+                {
+                    calcSlopeForce = slopeForce * (Mathf.Sqrt(slopeAngle)/1.4f);
+                }
+                else
+                {
+                    calcSlopeForce = slopeForce * (Mathf.Sqrt(slopeAngle)/0.6f);
+                }
+                print(calcSlopeForce);
                 Vector3 slopeDirection = Vector3.ProjectOnPlane(movementDirection, GetGroundNormal()).normalized;
-                body.AddForce(slopeDirection * speed * slopeForce, ForceMode.Acceleration);
+                body.AddForce(slopeDirection * speed * calcSlopeForce, ForceMode.Acceleration);
             }
             else
             {
@@ -68,9 +80,11 @@ public class MovePlayerPC : MonoBehaviour
 
     private bool OnSlope()
     {
-        Vector3 rayOrigin = body.position + Vector3.up * slopeRaycastOffset;
+        Vector3 rayOrigin = body.position * slopeRaycastOffset;
         if (Physics.Raycast(body.position, Vector3.down, out RaycastHit hit, slopeRayLength) && hit.transform.tag == "Terrain"){
-            return Vector3.Angle(hit.normal, Vector3.up) > 5 && Vector3.Angle(hit.normal, Vector3.up) < 45;
+            slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
+            //print(slopeAngle);
+            return Vector3.Angle(hit.normal, Vector3.up) > 5 && Vector3.Angle(hit.normal, Vector3.up) < 80;
         }
         return false;
     }
