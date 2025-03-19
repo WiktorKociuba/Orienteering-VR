@@ -23,13 +23,17 @@ public class MovePlayerPC : MonoBehaviour
     private float speed = 0.0f;
     private float slopeRaycastOffset = 0.5f;
     private InputAction moveValue;
+    private InputAction sprint;
     private float verticalRotation = 0.0f;
     private float slopeAngle;
     private float calcSlopeForce;
+    private float maxSpeedSprint;
     private void Start()
     {
         maxSpeedConst = maxSpeed;
+        maxSpeedSprint = maxSpeed;
         moveValue = InputSystem.actions.FindAction("Move");
+        sprint = InputSystem.actions.FindAction("sprint");
         Cursor.lockState = CursorLockMode.Locked;
         body.interpolation = RigidbodyInterpolation.Interpolate;
         body.collisionDetectionMode = CollisionDetectionMode.Continuous;
@@ -37,7 +41,22 @@ public class MovePlayerPC : MonoBehaviour
 
     private void FixedUpdate()
     {
+        float ifSprint = sprint.ReadValue<float>();
         Vector2 input = moveValue.ReadValue<Vector2>();
+        bool flag = false;
+        if (ifSprint > 0f)
+        {
+            if(flag == false)
+            {
+                maxSpeed = maxSpeed + 1.5f;
+                flag = true;
+            }
+        }
+        else if(flag == true && ifSprint <= 0)
+        {
+            maxSpeed = maxSpeedSprint;
+            flag = false;
+        }
         if (input.sqrMagnitude > 0.05f)
         {
             Vector3 forward = new Vector3(camera.transform.forward.x, 0, camera.transform.forward.z).normalized;
@@ -49,13 +68,12 @@ public class MovePlayerPC : MonoBehaviour
                 slopeAngle /= 100;
                 if(slopeAngle < 30)
                 {
-                    calcSlopeForce = slopeForce * (Mathf.Sqrt(slopeAngle)/1.4f);
+                    calcSlopeForce = slopeForce * Mathf.Sqrt(slopeAngle)/1.4f;
                 }
                 else
                 {
-                    calcSlopeForce = slopeForce * (Mathf.Sqrt(slopeAngle)/0.6f);
+                    calcSlopeForce = slopeForce * Mathf.Sqrt(slopeAngle)/0.6f;
                 }
-                print(calcSlopeForce);
                 Vector3 slopeDirection = Vector3.ProjectOnPlane(movementDirection, GetGroundNormal()).normalized;
                 body.AddForce(slopeDirection * speed * calcSlopeForce, ForceMode.Acceleration);
             }
@@ -67,8 +85,7 @@ public class MovePlayerPC : MonoBehaviour
         }
         else
         {
-            speed = Mathf.Lerp(speed,0,Time.fixedDeltaTime * deceleration);
-            body.linearVelocity = new Vector3(0, body.linearVelocity.y, 0);
+           body.linearVelocity = new Vector3(0,0,0);
         }
         float mouseX = Mouse.current.delta.x.ReadValue() * mouseSensitivity * Time.fixedDeltaTime;
         transform.Rotate(Vector3.up * mouseX);

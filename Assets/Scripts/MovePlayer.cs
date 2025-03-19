@@ -23,7 +23,8 @@ public class MovePlayer : MonoBehaviour
     private Vector3 movementDirection;
     private float speed = 0.0f;
     private float slopeRaycastOffset = 0.5f;
-
+    private float calcSlopeForce;
+    private float slopeAngle;
     private void Start()
     {
         maxSpeedConst = maxSpeed;
@@ -40,8 +41,17 @@ public class MovePlayer : MonoBehaviour
             speed = Mathf.Lerp(speed, maxSpeed * input.magnitude * sensitivity, Time.fixedDeltaTime * acceleration);
             if (OnSlope())
             {
+                slopeAngle /= 100;
+                if(slopeAngle < 30)
+                {
+                    calcSlopeForce = slopeForce * Mathf.Sqrt(slopeAngle)/1.4f;
+                }
+                else
+                {
+                    calcSlopeForce = slopeForce * Mathf.Sqrt(slopeAngle)/0.6f;
+                }
                 Vector3 slopeDirection = Vector3.ProjectOnPlane(movementDirection, GetGroundNormal()).normalized;
-                body.AddForce(slopeDirection * speed * slopeForce, ForceMode.Acceleration);
+                body.AddForce(slopeDirection * speed * calcSlopeForce, ForceMode.Acceleration);
             }
             else
             {
@@ -50,8 +60,7 @@ public class MovePlayer : MonoBehaviour
         }
         else
         {
-            speed = Mathf.Lerp(speed,0,Time.fixedDeltaTime * deceleration);
-            body.linearVelocity = new Vector3(0, body.linearVelocity.y, 0);
+           body.linearVelocity = new Vector3(0,0,0);
         }
     }
 

@@ -9,7 +9,7 @@
                     "name": "Move",
                     "type": "Value",
                     "id": "31807f2d-b599-4baf-94bc-d007266adf5d",
-                    "expectedControlType": "Vector2",
+                    "expectedControlType": "Analog",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -49,6 +49,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "sprint",
+                    "type": "Button",
+                    "id": "586cffab-9fb9-49f8-9f7b-093d6dd01486",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -282,6 +291,17 @@
                     "action": "moveMap",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "11301f01-2d84-4aed-badd-1a4d0b469734",
+                    "path": "<Keyboard>/leftShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "sprint",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }
