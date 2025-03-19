@@ -43,26 +43,20 @@ public class MovePlayerPC : MonoBehaviour
     {
         float ifSprint = sprint.ReadValue<float>();
         Vector2 input = moveValue.ReadValue<Vector2>();
-        bool flag = false;
-        if (ifSprint > 0f)
-        {
-            if(flag == false)
-            {
-                maxSpeed = maxSpeed + 1.5f;
-                flag = true;
-            }
-        }
-        else if(flag == true && ifSprint <= 0)
-        {
-            maxSpeed = maxSpeedSprint;
-            flag = false;
-        }
+
         if (input.sqrMagnitude > 0.05f)
         {
             Vector3 forward = new Vector3(camera.transform.forward.x, 0, camera.transform.forward.z).normalized;
             movementDirection = new Vector3(input.x,0,input.y).normalized;
             movementDirection = Quaternion.LookRotation(forward) * movementDirection;
-            speed = Mathf.Lerp(speed, maxSpeed * input.magnitude * sensitivity, Time.fixedDeltaTime * acceleration);
+            if(ifSprint > 0)
+            {
+                speed = Mathf.Lerp(speed+0.3f, maxSpeed * input.magnitude * sensitivity, Time.fixedDeltaTime * acceleration);
+            }
+            else
+            {
+                speed = Mathf.Lerp(speed, maxSpeed * input.magnitude * sensitivity, Time.fixedDeltaTime * acceleration);
+            }
             if (OnSlope())
             {
                 slopeAngle /= 100;
@@ -101,7 +95,7 @@ public class MovePlayerPC : MonoBehaviour
         if (Physics.Raycast(body.position, Vector3.down, out RaycastHit hit, slopeRayLength) && hit.transform.tag == "Terrain"){
             slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
             //print(slopeAngle);
-            return Vector3.Angle(hit.normal, Vector3.up) > 5 && Vector3.Angle(hit.normal, Vector3.up) < 80;
+            return Vector3.Angle(hit.normal, Vector3.up) > 10 && Vector3.Angle(hit.normal, Vector3.up) < 80;
         }
         return false;
     }
