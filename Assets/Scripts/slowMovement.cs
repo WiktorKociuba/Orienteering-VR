@@ -38,7 +38,7 @@ public class slowMovement : MonoBehaviour
                 else
                 {
                     movePlayerPC.slowZone = slowZone;
-                    movePlayerPC.maxSpeed = newSpeed;
+                    movePlayerPC.maxSpeed = newSpeed + 2;
                     print("in");
                 }
             }

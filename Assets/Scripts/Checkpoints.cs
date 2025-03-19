@@ -65,6 +65,8 @@ public class Checkpoints : MonoBehaviour
                     SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().name);
                     SceneManager.LoadScene("mainMenu");
                     Destroy(player);
+                    Cursor.lockState = CursorLockMode.None;
+                    Cursor.visible = true;
                 }
             }
             for (int i = 0; i < checkpoints.Length; i++)
