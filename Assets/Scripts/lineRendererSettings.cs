@@ -27,6 +27,7 @@ public class lineRendererSettings : MonoBehaviour
     public GameObject player;
     public GameObject level1;
     public GameObject map1course1;
+    public GameObject map1course2;
     Vector3[] points;
     public bool AlignLineRenderer(LineRenderer rend) // Make the line follow Ray
     {
@@ -97,11 +98,17 @@ public class lineRendererSettings : MonoBehaviour
                 map1.gameObject.SetActive(false);
                 demoMap.gameObject.SetActive(false);
                 map1course1.gameObject.SetActive(true);
+                map1course2.gameObject.SetActive(true);
             }
             else if(btn.name == "map1course1")
             {
                 Destroy(player);
-                SceneManager.UnloadSceneAsync("mainMenu");
+                routeManager.SelectRoute(0);
+                SceneManager.LoadScene("map1");
+            }
+            else if(btn.name == "map1course2"){
+                Destroy(player);
+                routeManager.SelectRoute(1);
                 SceneManager.LoadScene("map1");
             }
         }

@@ -17,6 +17,7 @@ public class clickMenuPC : MonoBehaviour
     public GameObject level1;
     public GameObject map1course1;
     public pauseMenuPC pauseMenuScript;
+    public GameObject map1course2;
     public void OnClick()
     {
         if (btn != null)
@@ -62,11 +63,17 @@ public class clickMenuPC : MonoBehaviour
                 map1.gameObject.SetActive(false);
                 demoMap.gameObject.SetActive(false);
                 map1course1.gameObject.SetActive(true);
+                map1course2.gameObject.SetActive(true);
             }
             else if(btn.name == "map1course1")
             {
                 Destroy(player);
-                SceneManager.UnloadSceneAsync("mainMenu");
+                routeManager.SelectRoute(0);
+                SceneManager.LoadScene("map1");
+            }
+            else if(btn.name == "map1course2"){
+                Destroy(player);
+                routeManager.SelectRoute(1);
                 SceneManager.LoadScene("map1");
             }
         }
