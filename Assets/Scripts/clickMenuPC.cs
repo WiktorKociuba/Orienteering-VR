@@ -18,6 +18,8 @@ public class clickMenuPC : MonoBehaviour
     public GameObject map1course1;
     public pauseMenuPC pauseMenuScript;
     public GameObject map1course2;
+    public GameObject nightmode;
+    public GameObject nightmodeenable;
     public void OnClick()
     {
         if (btn != null)
@@ -64,6 +66,7 @@ public class clickMenuPC : MonoBehaviour
                 demoMap.gameObject.SetActive(false);
                 map1course1.gameObject.SetActive(true);
                 map1course2.gameObject.SetActive(true);
+                nightmode.gameObject.SetActive(true);
             }
             else if(btn.name == "map1course1")
             {
@@ -75,6 +78,18 @@ public class clickMenuPC : MonoBehaviour
                 Destroy(player);
                 routeManager.SelectRoute(1);
                 SceneManager.LoadScene("map1");
+            }
+            else if(btn.name == "nightModeDisabled")
+            {
+                routeManager.SelectNight();
+                nightmode.SetActive(false);
+                nightmodeenable.SetActive(true);
+            }
+            else if(btn.name == "nightModeEnabled")
+            {
+                routeManager.SelectDay();
+                nightmodeenable.SetActive(false);
+                nightmode.SetActive(true);
             }
         }
         btn = null;
