@@ -20,6 +20,12 @@ public class clickMenuPC : MonoBehaviour
     public GameObject map1course2;
     public GameObject nightmode;
     public GameObject nightmodeenable;
+    public GameObject settingsButton;
+    public GameObject settingsMenu;
+    public GameObject soundSettings;
+    public GameObject screenSettings;
+    public GameObject soundSettingsButton;
+    public GameObject graphicSettingsButton;
     public void OnClick()
     {
         if (btn != null)
@@ -28,6 +34,7 @@ public class clickMenuPC : MonoBehaviour
             {
                 start.gameObject.SetActive(false);
                 exit.gameObject.SetActive(false);
+                settingsButton.SetActive(false);
                 demoMap.gameObject.SetActive(true);
                 map1.gameObject.SetActive(true);
             }
@@ -90,6 +97,24 @@ public class clickMenuPC : MonoBehaviour
                 routeManager.SelectDay();
                 nightmodeenable.SetActive(false);
                 nightmode.SetActive(true);
+            }
+            else if(btn.name == "settingsButton")
+            {
+                start.gameObject.SetActive(false);
+                exit.gameObject.SetActive(false);
+                settingsButton.SetActive(false);
+                settingsMenu.SetActive(true);
+                soundSettings.SetActive(true);
+            }
+            else if(btn.name == "soundSettingsButton")
+            {
+                screenSettings.SetActive(false);
+                soundSettings.SetActive(true);
+            }
+            else if(btn.name == "graphicSettingsButton")
+            {
+                screenSettings.SetActive(true);
+                soundSettings.SetActive(false);
             }
         }
         btn = null;
