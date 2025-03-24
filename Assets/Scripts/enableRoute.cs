@@ -38,6 +38,7 @@ public class enableRoute : MonoBehaviour
                 spotLight1.SetActive(false);
                 spotLight2.SetActive(true);   
             }
+            routeManager.SelectDay();
             RenderSettings.skybox = Night;
             directionalLight.intensity = 0.2f;
             RenderSettings.fogColor = Color.black;

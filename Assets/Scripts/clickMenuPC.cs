@@ -116,6 +116,38 @@ public class clickMenuPC : MonoBehaviour
                 screenSettings.SetActive(true);
                 soundSettings.SetActive(false);
             }
+            else if(btn.name == "backSettings")
+            {
+                screenSettings.SetActive(false);
+                soundSettings.SetActive(false);
+                settingsMenu.SetActive(false);
+                start.gameObject.SetActive(true);
+                settingsButton.SetActive(true);
+                exit.gameObject.SetActive(true);
+            }
+            else if(btn.name == "backDemoMap")
+            {
+                level1.SetActive(false);
+                demoMap.gameObject.SetActive(true);
+                map1.gameObject.SetActive(true);
+            }
+            else if(btn.name == "backMap1")
+            {
+                map1course1.SetActive(false);
+                map1course2.SetActive(false);
+                nightmode.SetActive(false);
+                nightmodeenable.SetActive(false);
+                demoMap.gameObject.SetActive(true);
+                map1.gameObject.SetActive(true);
+            }
+            else if(btn.name == "backMapMenu")
+            {
+                map1.gameObject.SetActive(false);
+                demoMap.gameObject.SetActive(false);
+                start.gameObject.SetActive(true);
+                settingsButton.SetActive(true);
+                exit.gameObject.SetActive(true);
+            }
         }
         btn = null;
     }
