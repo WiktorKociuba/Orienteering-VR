@@ -1540,14 +1540,30 @@ MonoBehaviour:
     m_Bits: 32
   panel: {fileID: 3522252653762110986}
   img: {fileID: 0}
-  demoMapImg: {fileID: 0}
   btn: {fileID: 0}
+  slider: {fileID: 0}
+  dropdown: {fileID: 0}
   start: {fileID: 0}
   exit: {fileID: 0}
   demoMap: {fileID: 0}
+  map1: {fileID: 0}
   menu: 0
   pauseMenuScript: {fileID: 5096074817260254412}
   player: {fileID: 3512649007490477471}
+  level1: {fileID: 0}
+  map1course1: {fileID: 0}
+  map1course2: {fileID: 0}
+  nightmode: {fileID: 0}
+  nightmodeenable: {fileID: 0}
+  settingsButton: {fileID: 0}
+  settingsMenu: {fileID: 0}
+  soundSettings: {fileID: 0}
+  screenSettings: {fileID: 0}
+  soundSettingsButton: {fileID: 0}
+  graphicSettingsButton: {fileID: 0}
+  moveValue:
+    actionPath: 
+    needsReinit: 0
 --- !u!1 &6103655257836212875 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 160596, guid: dc06161b6d97feb419f45f03b62e14b9, type: 3}
@@ -1699,14 +1715,30 @@ MonoBehaviour:
     m_Bits: 32
   panel: {fileID: 3522252653762110986}
   img: {fileID: 0}
-  demoMapImg: {fileID: 0}
   btn: {fileID: 0}
+  slider: {fileID: 0}
+  dropdown: {fileID: 0}
   start: {fileID: 0}
   exit: {fileID: 0}
   demoMap: {fileID: 0}
+  map1: {fileID: 0}
   menu: 0
   pauseMenuScript: {fileID: 5096074817260254412}
   player: {fileID: 3512649007490477471}
+  level1: {fileID: 0}
+  map1course1: {fileID: 0}
+  map1course2: {fileID: 0}
+  nightmode: {fileID: 0}
+  nightmodeenable: {fileID: 0}
+  settingsButton: {fileID: 0}
+  settingsMenu: {fileID: 0}
+  soundSettings: {fileID: 0}
+  screenSettings: {fileID: 0}
+  soundSettingsButton: {fileID: 0}
+  graphicSettingsButton: {fileID: 0}
+  moveValue:
+    actionPath: 
+    needsReinit: 0
 --- !u!1 &6103655257836225653 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 107946, guid: dc06161b6d97feb419f45f03b62e14b9, type: 3}
@@ -1736,6 +1768,7 @@ MonoBehaviour:
   slopeRayLength: 0
   body: {fileID: 7933976920014377244}
   slowZone: 0
+  VRCamera: {fileID: 6103655257837477655}
   maxSpeedConst: 0
 --- !u!54 &7933976920014377244
 Rigidbody:
