@@ -20,6 +20,7 @@ public class MovePlayer : MonoBehaviour
     public Rigidbody body;
     public int slowZone;
     public Camera VRCamera;
+    public AudioSource runningAudioSource;
 
     public float maxSpeedConst;
     private Vector3 movementDirection;
@@ -40,6 +41,10 @@ public class MovePlayer : MonoBehaviour
         Vector2 input = moveValue.axis;
         if (input.sqrMagnitude > 0.05f)
         {
+            if(!runningAudioSource.isPlaying)
+            {
+                runningAudioSource.Play();
+            }
             print(input.x + " " + input.y);
             Vector3 forward = new Vector3(VRCamera.transform.forward.x, 0,VRCamera.transform.forward.z).normalized;
             movementDirection = new Vector3(input.x,0,input.y).normalized;
@@ -68,6 +73,10 @@ public class MovePlayer : MonoBehaviour
         }
         else
         {
+            if(runningAudioSource.isPlaying)
+            {
+                runningAudioSource.Stop();
+            }
             body.linearVelocity = new Vector3(0,0,0);
             isMoving = false;
         }

@@ -17,7 +17,7 @@ public class MovePlayerPC : MonoBehaviour
     public int slowZone;
     public GameObject camera;
     public float mouseSensitivity = 5.0f;
-
+    public AudioSource runningAudioSource;
     public float maxSpeedConst;
     private Vector3 movementDirection;
     private float speed = 0.0f;
@@ -46,6 +46,10 @@ public class MovePlayerPC : MonoBehaviour
 
         if (input.sqrMagnitude > 0.05f)
         {
+            if(!runningAudioSource.isPlaying)
+            {
+                runningAudioSource.Play();
+            }
             Vector3 forward = new Vector3(camera.transform.forward.x, 0, camera.transform.forward.z).normalized;
             movementDirection = new Vector3(input.x,0,input.y).normalized;
             movementDirection = Quaternion.LookRotation(forward) * movementDirection;
@@ -79,7 +83,11 @@ public class MovePlayerPC : MonoBehaviour
         }
         else
         {
-           body.linearVelocity = new Vector3(0,0,0);
+            if(runningAudioSource.isPlaying)
+            {
+                runningAudioSource.Stop();
+            }
+            body.linearVelocity = new Vector3(0,0,0);
         }
         float mouseX = Mouse.current.delta.x.ReadValue() * mouseSensitivity * Time.fixedDeltaTime;
         transform.Rotate(Vector3.up * mouseX);
