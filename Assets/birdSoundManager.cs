@@ -10,7 +10,7 @@ public class birdSoundManager : MonoBehaviour
     public float minInterval = 5f;
     public float maxInterval = 9f;
     public float soundVolume = 0.15f;
-
+    public AudioMixerGroup outputAudioMixerGroup;
     private void Start()
     {
         StartCoroutine(PlayBirdSound());
@@ -30,6 +30,10 @@ public class birdSoundManager : MonoBehaviour
             audioSource.spatialBlend = 1.0f;
             audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
             audioSource.volume = soundVolume;
+            if (outputAudioMixerGroup != null)
+            {
+                audioSource.outputAudioMixerGroup = outputAudioMixerGroup;
+            }
             audioSource.Play();
 
             Destroy(birdSoundObject, audioSource.clip.length);

@@ -1019,6 +1019,7 @@ MonoBehaviour:
   minInterval: 3
   maxInterval: 9
   soundVolume: 0.15
+  outputAudioMixerGroup: {fileID: 243366450046692526, guid: ec12f7772c03e4c4c9e4c2f1643595ad, type: 2}
 --- !u!1 &8142927216927971082
 GameObject:
   m_ObjectHideFlags: 0

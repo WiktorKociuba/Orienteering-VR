@@ -32,7 +32,7 @@ MonoBehaviour:
   topTint: {r: 0.26802245, g: 0.3584906, b: 0.1775543, a: 1}
   bottomTint: {r: 0.23642756, g: 0.38943148, b: 0.7264151, a: 1}
   drawBounds: 0
-  minFadeDistance: 10
-  maxDrawDistance: 25
+  minFadeDistance: 40
+  maxDrawDistance: 125
   cullingTreeDepth: 4
   castShadow: 0

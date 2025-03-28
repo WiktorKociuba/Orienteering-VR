@@ -14,8 +14,6 @@ public class enableRoute : MonoBehaviour
     void Start()
     {
         routes[routeManager.SelectedRouteIndex].SetActive(true);
-        grass.SetActive(false);
-        grass.SetActive(true);
         if (!routeManager.SelectedTime)
         {
             RenderSettings.skybox = Day;
@@ -48,5 +46,7 @@ public class enableRoute : MonoBehaviour
             grass.SetActive(false);
             grass.SetActive(true);
         }
+        grass.SetActive(false);
+        grass.SetActive(true);
     }
 }

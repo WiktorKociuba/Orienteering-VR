@@ -53,14 +53,7 @@ public class MovePlayerPC : MonoBehaviour
             Vector3 forward = new Vector3(camera.transform.forward.x, 0, camera.transform.forward.z).normalized;
             movementDirection = new Vector3(input.x,0,input.y).normalized;
             movementDirection = Quaternion.LookRotation(forward) * movementDirection;
-            if(ifSprint > 0)
-            {
-                speed = Mathf.Lerp(speed+0.3f, maxSpeed * input.magnitude * sensitivity, Time.fixedDeltaTime * acceleration);
-            }
-            else
-            {
-                speed = Mathf.Lerp(speed, maxSpeed * input.magnitude * sensitivity, Time.fixedDeltaTime * acceleration);
-            }
+            speed = Mathf.Lerp(speed, maxSpeed * input.magnitude * sensitivity, Time.fixedDeltaTime * acceleration);
             if (OnSlope())
             {
                 slopeAngle /= 100;
