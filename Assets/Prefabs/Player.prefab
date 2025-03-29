@@ -1351,6 +1351,10 @@ PrefabInstance:
       value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 13693334, guid: dc06161b6d97feb419f45f03b62e14b9, type: 3}
+      propertyPath: m_Radius
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 13693334, guid: dc06161b6d97feb419f45f03b62e14b9, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
@@ -1937,6 +1941,8 @@ MonoBehaviour:
   camera: {fileID: 6103655257836244435}
   runningAudioSource: {fileID: 8336123495274735835}
   maxSpeedConst: 0
+  boost: 1.3
+  boostConst: 0
 --- !u!54 &7933976920014377244
 Rigidbody:
   m_ObjectHideFlags: 0

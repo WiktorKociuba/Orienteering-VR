@@ -30,7 +30,7 @@ public class MovePlayer : MonoBehaviour
     private float slopeAngle;
     private bool isMoving = false;
     private bool isBoosting = false;
-    public float boost = 1.3f;
+    public float boost = 0.7f;
     public float boostConst;
     private void Start()
     {
@@ -56,25 +56,33 @@ public class MovePlayer : MonoBehaviour
             if (OnSlope())
             {
                 slopeAngle /= 100;
+                Vector3 slopeDirection = Vector3.ProjectOnPlane(movementDirection, GetGroundNormal()).normalized;
+                if(!isMoving && !isBoosting)
+                {
+                    StartCoroutine(ApplyBoost(slopeDirection));
+                }
                 if(slopeAngle < 30)
                 {
                     calcSlopeForce = slopeForce * Mathf.Sqrt(slopeAngle)/1.4f;
                 }
                 else
                 {
-                    calcSlopeForce = (slopeForce * Mathf.Sqrt(slopeAngle)/0.6f)*boost;
+                    calcSlopeForce = (slopeForce * Mathf.Sqrt(slopeAngle))*boost;
                 }
-                Vector3 slopeDirection = Vector3.ProjectOnPlane(movementDirection, GetGroundNormal()).normalized;
-                body.AddForce(slopeDirection * speed * calcSlopeForce, ForceMode.Acceleration);
+                Vector3 targetVelocity = new Vector3(movementDirection.x * speed, body.linearVelocity.y, movementDirection.z * speed);
+                body.linearVelocity = Vector3.Lerp(body.linearVelocity, targetVelocity, Time.fixedDeltaTime * acceleration);
+                body.AddForce(slopeDirection * calcSlopeForce, ForceMode.Acceleration);
             }
             else
             {
+                isMoving = true;
                 Vector3 targetVelocity = new Vector3(movementDirection.x * speed, body.linearVelocity.y, movementDirection.z * speed);
-                body.linearVelocity = Vector3.Lerp(body.linearVelocity, targetVelocity, Time.fixedDeltaTime * deceleration);
+                body.linearVelocity = Vector3.Lerp(body.linearVelocity, targetVelocity, Time.fixedDeltaTime * acceleration);
             }
         }
         else
         {
+            isMoving = false;
             if(runningAudioSource.isPlaying)
             {
                 runningAudioSource.Stop();
@@ -90,10 +98,11 @@ public class MovePlayer : MonoBehaviour
         float elapsedTime = 0f;
         while(true)
         {
-            body.AddForce(slopeDirection * boost, ForceMode.Acceleration);
+            body.AddForce(slopeDirection * 5, ForceMode.Acceleration);
             elapsedTime += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
+        isBoosting = false;
     }
 
     private bool OnSlope()
