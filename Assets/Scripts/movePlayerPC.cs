@@ -2,7 +2,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.InputSystem;
-
+using System.Collections;
 public class MovePlayerPC : MonoBehaviour
 {
     [Header("Settings")]
@@ -28,6 +28,8 @@ public class MovePlayerPC : MonoBehaviour
     private float slopeAngle;
     private float calcSlopeForce;
     private float maxSpeedSprint;
+    private float boost = 5.0f;
+    private bool isBoosting;
     private void Start()
     {
         maxSpeedConst = maxSpeed;
@@ -88,6 +90,20 @@ public class MovePlayerPC : MonoBehaviour
         verticalRotation -= mouseY;
         verticalRotation = Mathf.Clamp(verticalRotation, -90f, 90f);
         camera.transform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
+    }
+
+    private IEnumerator ApplyBoost(Vector3 slopeDirection)
+    {
+        isBoosting = true;
+        float boostDuration = 1f;
+        float elapsedTime = 0f;
+        while(elapsedTime<boostDuration)
+        {
+            body.AddForce(slopeDirection * boost, ForceMode.Acceleration);
+            elapsedTime += Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
+        }
+        isBoosting = false;
     }
 
     private bool OnSlope()

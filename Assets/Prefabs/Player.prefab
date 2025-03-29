@@ -1925,16 +1925,16 @@ MonoBehaviour:
   moveValue:
     actionPath: /actions/default/in/moveValue
     needsReinit: 0
-  acceleration: 1
-  deceleration: 2
+  acceleration: 1000
+  deceleration: 1000
   rotationRate: 3
   maxSpeed: 5
   sensitivity: 1
-  slopeForce: 2.2
+  slopeForce: 5
   slopeRayLength: 0
   body: {fileID: 7933976920014377244}
   slowZone: 0
-  VRCamera: {fileID: 6103655257837477655}
+  camera: {fileID: 6103655257836244435}
   runningAudioSource: {fileID: 8336123495274735835}
   maxSpeedConst: 0
 --- !u!54 &7933976920014377244
