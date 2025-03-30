@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class Checkpoints : MonoBehaviour
 {
@@ -23,7 +24,6 @@ public class Checkpoints : MonoBehaviour
     public string punchedControl;
 
     private float time;
-    private float timeToTeleport;
     private void Start()
     {
         currentCheckpoint = 0;
@@ -58,15 +58,7 @@ public class Checkpoints : MonoBehaviour
                     punchedControl = "Finish";
                     print($"Finished, time: {time}");
                     finished = true;
-                    while(timeToTeleport < 50000)
-                    {
-                        timeToTeleport += Time.deltaTime;
-                    }
-                    SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().name);
-                    SceneManager.LoadScene("mainMenu");
-                    Destroy(player);
-                    Cursor.lockState = CursorLockMode.None;
-                    Cursor.visible = true;
+                    StartCoroutine(GoBackToMenu());
                 }
             }
             for (int i = 0; i < checkpoints.Length; i++)
@@ -81,5 +73,15 @@ public class Checkpoints : MonoBehaviour
                 }
             }
         }
+    }
+    
+    private IEnumerator GoBackToMenu()
+    {
+        yield return new WaitForSeconds(5);
+        SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().name);
+        SceneManager.LoadScene("mainMenu");
+        Destroy(player);
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 }

@@ -65,10 +65,12 @@ public class MovePlayerPC : MonoBehaviour
                 }
                 else
                 {
-                    calcSlopeForce = slopeForce * Mathf.Sqrt(slopeAngle)/0.6f;
+                    calcSlopeForce = slopeForce * Mathf.Sqrt(slopeAngle)/0.9f;
                 }
                 Vector3 slopeDirection = Vector3.ProjectOnPlane(movementDirection, GetGroundNormal()).normalized;
-                body.AddForce(slopeDirection * speed * calcSlopeForce, ForceMode.Acceleration);
+                Vector3 targetVelocity = new Vector3(movementDirection.x * speed, body.linearVelocity.y, movementDirection.z * speed);
+                body.linearVelocity = Vector3.Lerp(body.linearVelocity, targetVelocity, Time.fixedDeltaTime * acceleration);
+                body.AddForce(slopeDirection * calcSlopeForce, ForceMode.Acceleration);
             }
             else
             {
