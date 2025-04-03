@@ -17,6 +17,11 @@ public class Checkpoints : MonoBehaviour
     [Header("Player")]
     public GameObject player;
 
+    [Header("Tutorial")]
+    public bool ifTutorial = false;
+    public GameObject arrow;
+    public Billboard billboard;
+
     [Header("Information")]
     private float currentCheckpoint;
     private bool started;
@@ -50,6 +55,12 @@ public class Checkpoints : MonoBehaviour
                 punchedControl = "Start";
                 print("Start");
                 started = true;
+                if(ifTutorial)
+                {
+                    Vector3 targetPosition = checkpoints[0].transform.position;
+                    targetPosition.y += 2.2f;
+                    billboard.initialPosition = targetPosition;
+                }
             }
             else if (thisCheckpoint == finish && started)
             {
@@ -70,6 +81,18 @@ public class Checkpoints : MonoBehaviour
                     currentCheckpoint++;
                     print($"Control {thisCheckpoint}");
                     punchedControl = thisCheckpoint.name;
+                    if(ifTutorial && i+1 < checkpoints.Length)
+                    {
+                        Vector3 targetPosition = checkpoints[i+1].transform.position;
+                        targetPosition.y += 2.2f;
+                        billboard.initialPosition = targetPosition;
+                    }
+                    else if(ifTutorial)
+                    {
+                        Vector3 targetPosition = finish.transform.position;
+                        targetPosition.y += 2.2f;
+                        billboard.initialPosition = targetPosition;
+                    }
                 }
             }
         }

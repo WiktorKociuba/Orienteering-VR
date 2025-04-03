@@ -148,6 +148,11 @@ public class clickMenuPC : MonoBehaviour
                 settingsButton.SetActive(true);
                 exit.gameObject.SetActive(true);
             }
+            else if(btn.name == "tutorial")
+            {
+                Destroy(player);
+                SceneManager.LoadScene("tutorial");
+            }
         }
         btn = null;
     }
