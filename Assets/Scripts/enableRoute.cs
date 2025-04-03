@@ -48,5 +48,6 @@ public class enableRoute : MonoBehaviour
         }
         grass.SetActive(false);
         grass.SetActive(true);
+        Camera.main.farClipPlane = routeManager.renderDistance;
     }
 }

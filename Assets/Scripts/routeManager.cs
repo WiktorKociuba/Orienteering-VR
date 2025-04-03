@@ -3,7 +3,8 @@ using UnityEngine;
 public class routeManager
 {
     public static int SelectedRouteIndex {get; private set; } = -1;
-    public static bool SelectedTime {get; private set; } = false; 
+    public static bool SelectedTime {get; private set; } = false;
+    public static float renderDistance {get; private set; } = 300f;
     public static void SelectRoute(int routeIndex)
     {
         SelectedRouteIndex = routeIndex;
@@ -16,5 +17,9 @@ public class routeManager
     public static void SelectNight()
     {
         SelectedTime = true;
+    }
+    public static void SelectRendDist(float rendDist)
+    {
+        renderDistance = rendDist;
     }
 }

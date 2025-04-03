@@ -194,6 +194,11 @@ public class lineRendererSettings : MonoBehaviour
                 settingsButton.SetActive(true);
                 exit.gameObject.SetActive(true);
             }
+            else if(btn.name == "tutorial")
+            {
+                Destroy(player);
+                SceneManager.LoadScene("tutorial");
+            }
         }
     }
     private void Start() // Set up the initial line
