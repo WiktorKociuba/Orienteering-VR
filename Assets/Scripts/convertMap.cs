@@ -9,8 +9,14 @@ public class convertMap : MonoBehaviour
 {
     public class isomSymbol
     {
-        public int id;
+        public int id; // omap ID
+        public int isomId; // ISOM 2017-2 symbol set ID
         public int type;
+        /*
+            0 - point
+            1 - line
+            2 - area
+        */
         public GameObject symbolObject;
     }
     // https://omapwiki.orienteering.sport/specifications/isom/
@@ -48,7 +54,7 @@ public class convertMap : MonoBehaviour
     public GameObject trench; //215
     public GameObject uncrossableBodyOfWater; //301
     public GameObject shallowBodyOfWater; //302
-    public GameObject watterhole; //303
+    public GameObject waterhole; //303
     public GameObject crossableWatercourse; //304
     public GameObject smallCrossableWatercourse; //305
     public GameObject seasonalWaterChannel; //306
@@ -133,8 +139,151 @@ public class convertMap : MonoBehaviour
         public string id;
         public List<Vector2> coords = new List<Vector2>();
     }
+    public List<isomSymbol> isomSet = new List<isomSymbol>();
     void Start()
     {
+        /*
+            0 - point
+            1 - line
+            2 - area
+        */
+        isomSymbol temp = new isomSymbol();
+        temp.id = 0; temp.isomId = 101; temp.type = 1; temp.symbolObject = contour;
+        isomSet.Add(temp);
+        temp.id = 1; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 2; temp.isomId = 102; temp.type = 1; temp.symbolObject = indexContoure;
+        isomSet.Add(temp);
+        temp.id = 3; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 4; temp.isomId = 103; temp.type = 1; temp.symbolObject = formLine;
+        isomSet.Add(temp);
+        temp.id = 5; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 6; temp.isomId = 104; temp.type = 1; temp.symbolObject = earthBank;
+        isomSet.Add(temp);
+        temp.id = 7; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 8; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 9; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 10; temp.isomId = 1051; temp.type = 1; temp.symbolObject = earthWall;
+        isomSet.Add(temp);
+        temp.id = 11; temp.isomId = 106; temp.type = 1; temp.symbolObject = ruinedEarthWall;
+        isomSet.Add(temp);
+        temp.id = 12; temp.isomId = 107; temp.type = 1; temp.symbolObject = erosionGully;
+        isomSet.Add(temp);
+        temp.id = 13; temp.isomId = 108; temp.type = 1; temp.symbolObject = smallErosionGully;
+        isomSet.Add(temp);
+        temp.id = 14; temp.isomId = 109; temp.type = 0; temp.symbolObject = smallKnoll;
+        isomSet.Add(temp);
+        temp.id = 15; temp.isomId = 110; temp.type = 0; temp.symbolObject = smallElongatedKnoll;
+        isomSet.Add(temp);
+        temp.id = 16; temp.isomId = 111; temp.type = 0; temp.symbolObject = smallDepression;
+        isomSet.Add(temp);
+        temp.id = 17; temp.isomId = 112; temp.type = 0; temp.symbolObject = pit;
+        isomSet.Add(temp);
+        temp.id = 18; temp.isomId = 113; temp.type = 2; temp.symbolObject = brokenGround;
+        isomSet.Add(temp);
+        temp.id = 19; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 20; temp.isomId = 114; temp.type = 2; temp.symbolObject = veryBrokenGround;
+        isomSet.Add(temp);
+        temp.id = 21; temp.isomId = 115; temp.type = 0; temp.symbolObject = prominentLandformFeature;
+        isomSet.Add(temp);
+        temp.id = 22; temp.isomId = 201; temp.type = 1; temp.symbolObject = impassableCliff;
+        isomSet.Add(temp);
+        temp.id = 23; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 24; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 25; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 26; temp.isomId = 202; temp.type = 1; temp.symbolObject = cliff;
+        isomSet.Add(temp);
+        temp.id = 27; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 28; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 29; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 30; temp.isomId = 2031; temp.type = 0; temp.symbolObject = rockyPit;
+        isomSet.Add(temp);
+        temp.id = 31; temp.isomId = 2032; temp.type = 0; temp.symbolObject = dangerousPit;
+        isomSet.Add(temp);
+        temp.id = 32; temp.isomId = 204; temp.type = 0; temp.symbolObject = Boulder;
+        isomSet.Add(temp);
+        temp.id = 33; temp.isomId = 2045; temp.type = 0; temp.symbolObject = Boulder;
+        isomSet.Add(temp);
+        temp.id = 34; temp.isomId = 205; temp.type = 0; temp.symbolObject = largeBoulder;
+        isomSet.Add(temp);
+        temp.id = 35; temp.isomId = 206; temp.type = 0; temp.symbolObject = giganticBoulder;
+        isomSet.Add(temp);
+        temp.id = 36; temp.isomId = 207; temp.type = 0; temp.symbolObject = boulderCluster;
+        isomSet.Add(temp);
+        temp.id = 37; temp.isomId = 2071; temp.type = 0; temp.symbolObject = boulderCluster;
+        isomSet.Add(temp);
+        temp.id = 38; temp.isomId = 208; temp.type = 2; temp.symbolObject = boulderField;
+        isomSet.Add(temp);
+        temp.id = 39; temp.isomId = 2081; temp.type = 2; temp.symbolObject = boulderField;
+        isomSet.Add(temp);
+        temp.id = 40; temp.isomId = 2082; temp.type = 2; temp.symbolObject = boulderField;
+        isomSet.Add(temp);
+        temp.id = 41; temp.isomId = 209; temp.type = 2; temp.symbolObject = denseBoulderField;
+        isomSet.Add(temp);
+        temp.id = 42; temp.isomId = 210; temp.type = 2; temp.symbolObject = stonyGroundRun;
+        isomSet.Add(temp);
+        temp.id = 43; temp.isomId = 2101; temp.type = 2; temp.symbolObject = stonyGroundRun;
+        isomSet.Add(temp);
+        temp.id = 44; temp.isomId = 211; temp.type = 2; temp.symbolObject = stonyGroundWalk;
+        isomSet.Add(temp);
+        temp.id = 45; temp.isomId = 212; temp.type = 2; temp.symbolObject = stonyGroundFight;
+        isomSet.Add(temp);
+        temp.id = 46; temp.isomId = 213; temp.type = 2; temp.symbolObject = sandyGround;
+        isomSet.Add(temp);
+        temp.id = 47; temp.isomId = 214; temp.type = 2; temp.symbolObject = bareRock;
+        isomSet.Add(temp);
+        temp.id = 48; temp.isomId = 215; temp.type = 1; temp.symbolObject = trench;
+        isomSet.Add(temp);
+        temp.id = 49; temp.isomId = 301; temp.type = 2; temp.symbolObject = uncrossableBodyOfWater;
+        isomSet.Add(temp);
+        temp.id = 50; temp.isomId = 3011; temp.type = 2; temp.symbolObject = uncrossableBodyOfWater;
+        isomSet.Add(temp);
+        temp.id = 51; temp.isomId = 3012; temp.type = 2; temp.symbolObject = uncrossableBodyOfWater;
+        isomSet.Add(temp);
+        temp.id = 52; temp.isomId = 3013; temp.type = 2; temp.symbolObject = uncrossableBodyOfWater;
+        isomSet.Add(temp);
+        temp.id = 53; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 54; temp.isomId = 302; temp.type = 2; temp.symbolObject = shallowBodyOfWater;
+        isomSet.Add(temp);
+        temp.id = 55; temp.isomId = 3021; temp.type = 2; temp.symbolObject = shallowBodyOfWater;
+        isomSet.Add(temp);
+        temp.id = 56; temp.isomId = 3022; temp.type = 2; temp.symbolObject = shallowBodyOfWater;
+        isomSet.Add(temp);
+        temp.id = 57; temp.isomId = 3023; temp.type = 2; temp.symbolObject = shallowBodyOfWater;
+        isomSet.Add(temp);
+        temp.id = 58; temp.isomId = 3025; temp.type = 2; temp.symbolObject = shallowBodyOfWater;
+        isomSet.Add(temp);
+        temp.id = 59; temp.isomId = 303; temp.type = 0; temp.symbolObject = waterhole;
+        isomSet.Add(temp);
+        temp.id = 60; temp.isomId = 304; temp.type = 1; temp.symbolObject = crossableWatercourse;
+        isomSet.Add(temp);
+        temp.id = 61; temp.isomId = 305; temp.type = 1; temp.symbolObject = smallCrossableWatercourse;
+        isomSet.Add(temp);
+        temp.id = 62; temp.isomId = 306; temp.type = 1; temp.symbolObject = seasonalWaterChannel;
+        isomSet.Add(temp);
+        temp.id = 63; temp.isomId = 307; temp.type = 2; temp.symbolObject = uncrossableMarsh;
+        isomSet.Add(temp);
+        temp.id = 64; temp.isomId = 3071; temp.type = 2; temp.symbolObject = uncrossableMarsh;
+        isomSet.Add(temp);
+        temp.id = 65; temp.isomId = -3072; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 66; temp.isomId = 308; temp.type = 2; temp.symbolObject = marsh;
+        isomSet.Add(temp);
+        temp.id = 67; temp.isomId = 3081; temp.type = 2; temp.symbolObject = marsh;
+        isomSet.Add(temp);
         parseOMAP();
     }
     // ISOM 2017 symbol set (for now)
