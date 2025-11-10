@@ -4,6 +4,7 @@ using System.Xml;
 using System.IO;
 using Unity.VisualScripting.AssemblyQualifiedNameParser;
 using UnityEngine.Rendering;
+using NUnit.Framework.Constraints;
 
 public class convertMap : MonoBehaviour
 {
@@ -67,14 +68,19 @@ public class convertMap : MonoBehaviour
     public GameObject prominentWaterFeature; //313
     public GameObject openLand; //401
     public GameObject openLandWithTrees; //402
+    public GameObject openLandWithBushes; //402.1
     public GameObject roughOpenLand; //403
     public GameObject roughOpenLandWithTrees; //404
+    public GameObject roughOpenLandWithBushes; //404.1
     public GameObject forest; //405
     public GameObject vegetationSlow; //406
+    public GameObject vegetationSlowOneDir; //406.1
     public GameObject vegetationSlowGoodVis; //407
     public GameObject vegetationWalk; //408
+     public GameObject vegetationWalkOneDir; //408.1;408.2
     public GameObject vegetationWalkGoodVis; //409
     public GameObject vegetationFight; //410
+    public GameObject vegetationFightOneDir; //410.1;410.2;410.3
     public GameObject cultivatedLand; //412
     public GameObject orchard; //413
     public GameObject vineyard; //414
@@ -283,6 +289,206 @@ public class convertMap : MonoBehaviour
         temp.id = 66; temp.isomId = 308; temp.type = 2; temp.symbolObject = marsh;
         isomSet.Add(temp);
         temp.id = 67; temp.isomId = 3081; temp.type = 2; temp.symbolObject = marsh;
+        isomSet.Add(temp);
+        temp.id = 68; temp.isomId = 309; temp.type = 1; temp.symbolObject = narrowMarsh;
+        isomSet.Add(temp);
+        temp.id = 69; temp.isomId = 310; temp.type = 2; temp.symbolObject = indistinctMarsh;
+        isomSet.Add(temp);
+        temp.id = 70; temp.isomId = 3101; temp.type = 2; temp.symbolObject = indistinctMarsh;
+        isomSet.Add(temp);
+        temp.id = 71; temp.isomId = 311; temp.type = 0; temp.symbolObject = well;
+        isomSet.Add(temp);
+        temp.id = 72; temp.isomId = 312; temp.type = 0; temp.symbolObject = spring;
+        isomSet.Add(temp);
+        temp.id = 73; temp.isomId = 313; temp.type = 0; temp.symbolObject = prominentWaterFeature;
+        isomSet.Add(temp);
+        temp.id = 74; temp.isomId = 401; temp.type = 2; temp.symbolObject = openLand;
+        isomSet.Add(temp);
+        temp.id = 75; temp.isomId = 402; temp.type = 2; temp.symbolObject = openLandWithTrees;
+        isomSet.Add(temp);
+        temp.id = 76; temp.isomId = 4021; temp.type = 2; temp.symbolObject = openLandWithBushes;
+        isomSet.Add(temp);
+        temp.id = 77; temp.isomId = 403; temp.type = 2; temp.symbolObject = roughOpenLand;
+        isomSet.Add(temp);
+        temp.id = 78; temp.isomId = 404; temp.type = 2; temp.symbolObject = roughOpenLandWithTrees;
+        isomSet.Add(temp);
+        temp.id = 79; temp.isomId = 4041; temp.type = 2; temp.symbolObject = roughOpenLandWithBushes;
+        isomSet.Add(temp);
+        temp.id = 80; temp.isomId = 405; temp.type = 2; temp.symbolObject = forest;
+        isomSet.Add(temp);
+        temp.id = 81; temp.isomId = 406; temp.type = 2; temp.symbolObject = vegetationSlow;
+        isomSet.Add(temp);
+        temp.id = 82; temp.isomId = 4061; temp.type = 2; temp.symbolObject = vegetationSlowOneDir;
+        isomSet.Add(temp);
+        temp.id = 83; temp.isomId = 407; temp.type = 2; temp.symbolObject = vegetationSlowGoodVis;
+        isomSet.Add(temp);
+        temp.id = 84; temp.isomId = 408; temp.type = 2; temp.symbolObject = vegetationWalk;
+        isomSet.Add(temp);
+        temp.id = 85; temp.isomId = 4081; temp.type = 2; temp.symbolObject = vegetationWalkOneDir;
+        isomSet.Add(temp);
+        temp.id = 86; temp.isomId = 4082; temp.type = 2; temp.symbolObject = vegetationWalkOneDir;
+        isomSet.Add(temp);
+        temp.id = 87; temp.isomId = 409; temp.type = 2; temp.symbolObject = vegetationWalkGoodVis;
+        isomSet.Add(temp);
+        temp.id = 88; temp.isomId = 410; temp.type = 2; temp.symbolObject = vegetationFight;
+        isomSet.Add(temp);
+        temp.id = 89; temp.isomId = 4101; temp.type = 2; temp.symbolObject = vegetationFightOneDir;
+        isomSet.Add(temp);
+        temp.id = 90; temp.isomId = 4102; temp.type = 2; temp.symbolObject = vegetationFightOneDir;
+        isomSet.Add(temp);
+        temp.id = 91; temp.isomId = 4103; temp.type = 2; temp.symbolObject = vegetationFightOneDir;
+        isomSet.Add(temp);
+        temp.id = 92; temp.isomId = 4104; temp.type = 2; temp.symbolObject = vegetationFight;
+        isomSet.Add(temp);
+        temp.id = 93; temp.isomId = 412; temp.type = 2; temp.symbolObject = cultivatedLand;
+        isomSet.Add(temp);
+        temp.id = 94; temp.isomId = 4121; temp.type = 2; temp.symbolObject = cultivatedLand;
+        isomSet.Add(temp);
+        temp.id = 95; temp.isomId = 413; temp.type = 2; temp.symbolObject = orchard;
+        isomSet.Add(temp);
+        temp.id = 96; temp.isomId = 4131; temp.type = 2; temp.symbolObject = orchard;
+        isomSet.Add(temp);
+        temp.id = 97; temp.isomId = 414; temp.type = 2; temp.symbolObject = vineyard;
+        isomSet.Add(temp);
+        temp.id = 98; temp.isomId = 4141; temp.type = 2; temp.symbolObject = vineyard;
+        isomSet.Add(temp);
+        temp.id = 99; temp.isomId = -415; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 100; temp.isomId = 416; temp.type = 1; temp.symbolObject = distinctVegetationBoundary;
+        isomSet.Add(temp);
+        temp.id = 101; temp.isomId = 4161; temp.type = 1; temp.symbolObject = distinctVegetationBoundary;
+        isomSet.Add(temp);
+        temp.id = 102; temp.isomId = 417; temp.type = 0; temp.symbolObject = prominentLargeTree;
+        isomSet.Add(temp);
+        temp.id = 103; temp.isomId = 418; temp.type = 0; temp.symbolObject = prominentSmallTree;
+        isomSet.Add(temp);
+        temp.id = 104; temp.isomId = 419; temp.type = 0; temp.symbolObject = prominentVegetationFeature;
+        isomSet.Add(temp);
+        temp.id = 105; temp.isomId = 501; temp.type = 2; temp.symbolObject = pavedArea;
+        isomSet.Add(temp);
+        temp.id = 106; temp.isomId = 5011; temp.type = 2; temp.symbolObject = pavedArea;
+        isomSet.Add(temp);
+        temp.id = 107; temp.isomId = -5012; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 108; temp.isomId = 502; temp.type = 1; temp.symbolObject = wideRoad;
+        isomSet.Add(temp);
+        temp.id = 109; temp.isomId = 5022; temp.type = 1; temp.symbolObject = wideRoad;
+        isomSet.Add(temp);
+        temp.id = 110; temp.isomId = 503; temp.type = 1; temp.symbolObject = road;
+        isomSet.Add(temp);
+        temp.id = 111; temp.isomId = 504; temp.type = 1; temp.symbolObject = vehicleTrack;
+        isomSet.Add(temp);
+        temp.id = 112; temp.isomId = 505; temp.type = 1; temp.symbolObject = footpath;
+        isomSet.Add(temp);
+        temp.id = 113; temp.isomId = 506; temp.type = 1; temp.symbolObject = smallFootpath;
+        isomSet.Add(temp);
+        temp.id = 114; temp.isomId = 507; temp.type = 1; temp.symbolObject = lessDistinctSmallFootpath;
+        isomSet.Add(temp);
+        temp.id = 115; temp.isomId = 508; temp.type = 1; temp.symbolObject = linearTrace;
+        isomSet.Add(temp);
+        temp.id = 116; temp.isomId = 5081; temp.type = 1; temp.symbolObject = linearTrace;
+        isomSet.Add(temp);
+        temp.id = 117; temp.isomId = 5082; temp.type = 1; temp.symbolObject = linearTrace;
+        isomSet.Add(temp);
+        temp.id = 118; temp.isomId = 5083; temp.type = 1; temp.symbolObject = linearTrace;
+        isomSet.Add(temp);
+        temp.id = 119; temp.isomId = 5084; temp.type = 1; temp.symbolObject = linearTrace;
+        isomSet.Add(temp);
+        temp.id = 120; temp.isomId = 509; temp.type = 1; temp.symbolObject = railway;
+        isomSet.Add(temp);
+        temp.id = 121; temp.isomId = 510; temp.type = 1; temp.symbolObject = powerLine;
+        isomSet.Add(temp);
+        temp.id = 122; temp.isomId = 511; temp.type = 1; temp.symbolObject = majorPowerLine;
+        isomSet.Add(temp);
+        temp.id = 123; temp.isomId = 5111; temp.type = 1; temp.symbolObject = majorPowerLine;
+        isomSet.Add(temp);
+        temp.id = 124; temp.isomId = 5112; temp.type = 1; temp.symbolObject = majorPowerLine;
+        isomSet.Add(temp);
+        temp.id = 125; temp.isomId = 512; temp.type = 0; temp.symbolObject = bridgeTunnel;
+        isomSet.Add(temp);
+        temp.id = 126; temp.isomId = 5121; temp.type = 0; temp.symbolObject = bridgeTunnel;
+        isomSet.Add(temp);
+        temp.id = 127; temp.isomId = 5122; temp.type = 0; temp.symbolObject = bridgeTunnel;
+        isomSet.Add(temp);
+        temp.id = 128; temp.isomId = 513; temp.type = 1; temp.symbolObject = wall;
+        isomSet.Add(temp);
+        temp.id = 129; temp.isomId = 514; temp.type = 1; temp.symbolObject = ruinedWall;
+        isomSet.Add(temp);
+        temp.id = 130; temp.isomId = 515; temp.type = 1; temp.symbolObject = impassableWall;
+        isomSet.Add(temp);
+        temp.id = 131; temp.isomId = 516; temp.type = 1; temp.symbolObject = fence;
+        isomSet.Add(temp);
+        temp.id = 132; temp.isomId = 517; temp.type = 1; temp.symbolObject = ruinedFence;
+        isomSet.Add(temp);
+        temp.id = 133; temp.isomId = 518; temp.type = 1; temp.symbolObject = impassableFence;
+        isomSet.Add(temp);
+        temp.id = 134; temp.isomId = 519; temp.type = 0; temp.symbolObject = crossingPointFence;
+        isomSet.Add(temp);
+        temp.id = 135; temp.isomId = 520; temp.type = 2; temp.symbolObject = areaNotEnter;
+        isomSet.Add(temp);
+        temp.id = 136; temp.isomId = 5201; temp.type = 2; temp.symbolObject = areaNotEnter;
+        isomSet.Add(temp);
+        temp.id = 137; temp.isomId = 5202; temp.type = 2; temp.symbolObject = areaNotEnter;
+        isomSet.Add(temp);
+        temp.id = 138; temp.isomId = 5203; temp.type = 2; temp.symbolObject = areaNotEnter;
+        isomSet.Add(temp);
+        temp.id = 139; temp.isomId = 521; temp.type = 2; temp.symbolObject = building;
+        isomSet.Add(temp);
+        temp.id = 140; temp.isomId = 5211; temp.type = 2; temp.symbolObject = building;
+        isomSet.Add(temp);
+        temp.id = 141; temp.isomId = 5212; temp.type = 2; temp.symbolObject = building;
+        isomSet.Add(temp);
+        temp.id = 142; temp.isomId = 5213; temp.type = 2; temp.symbolObject = building;
+        isomSet.Add(temp);
+        temp.id = 143; temp.isomId = 5214; temp.type = 2; temp.symbolObject = building;
+        isomSet.Add(temp);
+        temp.id = 144; temp.isomId = 522; temp.type = 2; temp.symbolObject = canopy;
+        isomSet.Add(temp);
+        temp.id = 145; temp.isomId = 5221; temp.type = 2; temp.symbolObject = canopy;
+        isomSet.Add(temp);
+        temp.id = 146; temp.isomId = 5222; temp.type = 2; temp.symbolObject = canopy;
+        isomSet.Add(temp);
+        temp.id = 147; temp.isomId = 523; temp.type = 2; temp.symbolObject = ruin;
+        isomSet.Add(temp);
+        temp.id = 148; temp.isomId = 5231; temp.type = 2; temp.symbolObject = canopy;
+        isomSet.Add(temp);
+        temp.id = 149; temp.isomId = 524; temp.type = 0; temp.symbolObject = highTower;
+        isomSet.Add(temp);
+        temp.id = 150; temp.isomId = 525; temp.type = 0; temp.symbolObject = smallTower;
+        isomSet.Add(temp);
+        temp.id = 151; temp.isomId = 526; temp.type = 0; temp.symbolObject = cairn;
+        isomSet.Add(temp);
+        temp.id = 152; temp.isomId = 527; temp.type = 0; temp.symbolObject = fodderRack;
+        isomSet.Add(temp);
+        temp.id = 153; temp.isomId = 528; temp.type = 1; temp.symbolObject = prominentLineFeature;
+        isomSet.Add(temp);
+        temp.id = 154; temp.isomId = 529; temp.type = 1; temp.symbolObject = prominentImpassableLineFeature;
+        isomSet.Add(temp);
+        temp.id = 155; temp.isomId = 530; temp.type = 0; temp.symbolObject = prominentManMadeFeatureRing;
+        isomSet.Add(temp);
+        temp.id = 156; temp.isomId = 531; temp.type = 0; temp.symbolObject = prominentManMadeFeatureX;
+        isomSet.Add(temp);
+        temp.id = 157; temp.isomId = 532; temp.type = 1; temp.symbolObject = stairway;
+        isomSet.Add(temp);
+        temp.id = 158; temp.isomId = 5321; temp.type = 1; temp.symbolObject = stairway;
+        isomSet.Add(temp);
+        temp.id = 159; temp.isomId = -6011; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 160; temp.isomId = -6012; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 161; temp.isomId = -6013; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 162; temp.isomId = -6014; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 163; temp.isomId = -602; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 164; temp.isomId = -603; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 165; temp.isomId = -6031; temp.type = -1; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 166; temp.isomId = 704; temp.type = 0; temp.symbolObject = null;
+        isomSet.Add(temp);
+        temp.id = 167; temp.isomId = 799; temp.type = 0; temp.symbolObject = null;
         isomSet.Add(temp);
         parseOMAP();
     }
