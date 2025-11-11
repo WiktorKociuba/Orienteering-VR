@@ -8,9 +8,13 @@ using UnityEngine.Rendering;
 using NUnit.Framework.Constraints;
 using UnityEditor.Rendering;
 using System.Linq.Expressions;
+using System.Security.Cryptography;
+using Unity.VisualScripting;
 
 public class convertMap : MonoBehaviour
 {
+    public Terrain terrain;
+    public Material defaultMaterial;
     public class isomSymbol
     {
         public int id; // omap ID
@@ -698,9 +702,13 @@ public class convertMap : MonoBehaviour
         {
             isomSymbol refSym = isomSet[Int32.Parse(symbol.id)];
             print(isomSet[100].id);
-            if(refSym.type == 0)
+            if (refSym.type == 0)
             {
                 CreatePointObject(refSym, symbol.coords);
+            }
+            if (refSym.type == 2)
+            {
+                CreateAreaObject(refSym, symbol.coords);
             }
         }
         return omap;
@@ -708,10 +716,100 @@ public class convertMap : MonoBehaviour
     void CreatePointObject(isomSymbol symbol, List<Vector2> coords)
     {
         if (coords.Count == 0 || symbol.symbolObject == null)
+        {
+            Debug.LogWarning($"Too few coordinates for {symbol.isomId}");
             return;
+        }
         Vector2 pos = coords[0];
         GameObject obj = Instantiate(symbol.symbolObject, new Vector3(pos.x, 0, pos.y), Quaternion.identity);
         obj.name = $"{symbol.symbolObject.name}_{symbol.isomId}";
+    }
+    void CreateAreaObject(isomSymbol symbol, List<Vector2> coords)
+    {
+        if (coords.Count < 3)
+        {
+            Debug.LogWarning($"Too few coordinates for {symbol.isomId}");
+            return;
+        }
+        GameObject obj = new GameObject($"{symbol.symbolObject.name}_{symbol.isomId}");
+        MeshFilter mf = obj.AddComponent<MeshFilter>();
+        MeshRenderer mr = obj.AddComponent<MeshRenderer>();
+        Material objMaterial = null;
+        if (symbol.symbolObject != null)
+        {
+            MeshRenderer prefabRenderer = symbol.symbolObject.GetComponent<MeshRenderer>();
+            if (prefabRenderer != null && prefabRenderer.sharedMaterial != null)
+            {
+                objMaterial = prefabRenderer.sharedMaterial;
+            }
+        }
+        else if (defaultMaterial != null)
+        {
+            objMaterial = defaultMaterial;
+        }
+        mr.sharedMaterial = objMaterial;
+        Mesh areaMesh = CreateMesh(coords);
+        areaMesh.name = $"Mesh_{symbol.isomId}";
+        mf.mesh = areaMesh;
+        MeshCollider collider = obj.AddComponent<MeshCollider>();
+        collider.sharedMesh = areaMesh;
+    }
+    Mesh CreateMesh(List<Vector2> coords)
+    {
+        Mesh nMesh = new Mesh();
+        Vector3[] vertices = new Vector3[coords.Count];
+        float terrainHeight = 0f; // todo: process the contours
+        for (int i = 0; i < coords.Count; i++)
+        {
+            vertices[i] = new Vector3(coords[i].x, terrainHeight+0.05f, coords[i].y);
+        }
+        List<int> triangles = new List<int>();
+        for (int i = 1; i < coords.Count - 1; i++)
+        {
+            triangles.Add(0);
+            triangles.Add(i);
+            triangles.Add(i + 1);
+        }
+        Vector2[] uvs = GenerateUVs(coords);
+        nMesh.vertices = vertices;
+        nMesh.triangles = triangles.ToArray();
+        nMesh.uv = uvs;
+        nMesh.RecalculateNormals();
+        nMesh.RecalculateBounds();
+        return nMesh;
+    }
+    Vector2[] GenerateUVs(List<Vector2> coords)
+    {
+        Vector2[] uvs = new Vector2[coords.Count];
+        float minX = coords[0].x;
+        float maxX = coords[0].x;
+        float minY = coords[0].y;
+        float maxY = coords[0].y;
+        for (int i = 1; i < coords.Count; i++)
+        {
+            if (coords[i].x < minX)
+                minX = coords[i].x;
+            if (coords[i].x > maxX)
+                maxX = coords[i].x;
+            if (coords[i].y < minY)
+                minY = coords[i].y;
+            if (coords[i].y > maxY)
+                minY = coords[i].y;
+        }
+        float rangeX = maxX - minX;
+        float rangeY = maxY - minY;
+        if (rangeX == 0)
+            rangeX = 1f;
+        if (rangeY == 0)
+            rangeY = 1f;
+        for(int i = 0; i < coords.Count; i++)
+        {
+            uvs[i] = new Vector2(
+                (coords[i].x - minX) / rangeX,
+                (coords[i].y - minY) / rangeY
+            );
+        }
+        return uvs;
     }
     MapSymbol ParseObject(XmlNode symbolNode, XmlNamespaceManager nsmgr)
     {
@@ -734,7 +832,7 @@ public class convertMap : MonoBehaviour
                     if (coords.Length == 2)
                     {
                         if (float.TryParse(coords[0], out float x) && float.TryParse(coords[1], out float y))
-                            symbol.coords.Add(new Vector2(x / 10000f, y / 10000f));
+                            symbol.coords.Add(new Vector2(x / 100f, y / 100f));
                     }
                 }
             }
