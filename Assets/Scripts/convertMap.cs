@@ -706,6 +706,10 @@ public class convertMap : MonoBehaviour
             {
                 CreatePointObject(refSym, symbol.coords);
             }
+            if (refSym.type == 1)
+            {
+                CreateLineObject(refSym, symbol.coords);
+            }
             if (refSym.type == 2)
             {
                 CreateAreaObject(refSym, symbol.coords);
@@ -723,6 +727,21 @@ public class convertMap : MonoBehaviour
         Vector2 pos = coords[0];
         GameObject obj = Instantiate(symbol.symbolObject, new Vector3(pos.x, 0, pos.y), Quaternion.identity);
         obj.name = $"{symbol.symbolObject.name}_{symbol.isomId}";
+    }
+    void CreateLineObject(isomSymbol symbol, List<Vector2> coords)
+    {
+        if (coords.Count < 2)
+        {
+            Debug.LogWarning($"Too few coordinates for {symbol.isomId}");
+            return;
+        }
+        GameObject obj = new GameObject($"{symbol.symbolObject.name}_{symbol.isomId}");
+        Vector3 sizes = symbol.symbolObject.GetComponent<MeshFilter>().mesh.bounds.size;
+        foreach(Vector2 coord in coords)
+        {
+            
+            GameObject newObj = Instantiate(obj, new Vector3(coord.x,0,coord.y), Quaternion.identity);
+        }
     }
     void CreateAreaObject(isomSymbol symbol, List<Vector2> coords)
     {
