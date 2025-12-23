@@ -772,6 +772,10 @@ public class convertMap : MonoBehaviour
         mf.mesh = areaMesh;
         MeshCollider collider = obj.AddComponent<MeshCollider>();
         collider.sharedMesh = areaMesh;
+        if(symbol.id == 80) // white forest
+        {
+            
+        }
     }
     Mesh CreateMesh(List<Vector2> coords)
     {
