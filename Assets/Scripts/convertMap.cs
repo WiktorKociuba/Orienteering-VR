@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Xml;
@@ -10,9 +9,13 @@ using UnityEditor.Rendering;
 using System.Linq.Expressions;
 using System.Security.Cryptography;
 using Unity.VisualScripting;
+using UnityEditor.ShaderGraph.Internal;
+using Unity.Mathematics;
 
 public class convertMap : MonoBehaviour
 {
+    List<MapSymbol> omap;
+    float minX = float.MaxValue, minY = float.MaxValue, maxY = float.MinValue, maxX = float.MinValue;
     public Terrain terrain;
     public Material defaultMaterial;
     public class isomSymbol
@@ -666,10 +669,33 @@ public class convertMap : MonoBehaviour
         isomSet[167] = temp;
         parseOMAP();
     }
+    void getMapSize(){
+        foreach(MapSymbol symbol in omap){
+            foreach (Vector2 coord in symbol.coords){
+                if(coord.x > maxX)
+                    maxX = coord.x;
+                if(coord.x < minX)
+                    minX = coord.x;
+                if(coord.y > maxY)
+                    maxY = coord.y;
+                if(coord.y < minY)
+                    minY = coord.y;
+            }
+        }
+    }
+    void generateMapBounds(){
+        getMapSize();
+        TerrainData terrainData = new TerrainData();
+        terrainData.heightmapResolution = 513;
+        terrainData.size = new Vector3(math.abs(maxX-minX), 0, math.abs(maxY-minY));
+        GameObject terrainObject = Terrain.CreateTerrainGameObject(terrainData);
+        terrainObject.transform.position = new Vector3(minX, 0, minY);
+        terrain = terrainObject.GetComponent<Terrain>();
+    }
     // ISOM 2017 symbol set (for now)
     List<MapSymbol> parseOMAP()
     {
-        List<MapSymbol> omap = new List<MapSymbol>();
+        omap = new List<MapSymbol>();
         XmlDocument mapFile = new XmlDocument();
         try
         {
@@ -698,9 +724,10 @@ public class convertMap : MonoBehaviour
             print(omap.Count);    
         }
         print(omap.Count);
+        generateMapBounds();
         foreach(MapSymbol symbol in omap)
         {
-            isomSymbol refSym = isomSet[Int32.Parse(symbol.id)];
+            isomSymbol refSym = isomSet[int.Parse(symbol.id)];
             print(isomSet[100].id);
             if (refSym.type == 0)
             {
