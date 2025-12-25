@@ -12,6 +12,7 @@ using Unity.VisualScripting;
 using UnityEditor.ShaderGraph.Internal;
 using Unity.Mathematics;
 using UnityEngine.UIElements;
+using UnityEngine.Analytics;
 
 public class convertMap : MonoBehaviour
 {
@@ -774,6 +775,10 @@ public class convertMap : MonoBehaviour
     }
     void CreateLineObject(isomSymbol symbol, List<Vector2> coords)
     {
+        if(symbol.isomId == 101 || symbol.isomId == 102 || symbol.isomId == 103)
+        {
+            return;
+        }
         if (coords.Count < 2)
         {
             Debug.LogWarning($"Too few coordinates for {symbol.isomId}");
@@ -794,6 +799,7 @@ public class convertMap : MonoBehaviour
             Debug.LogWarning($"Too few coordinates for {symbol.isomId}");
             return;
         }
+        print(symbol.symbolObject.name);
         GameObject obj = new GameObject($"{symbol.symbolObject.name}_{symbol.isomId}");
         MeshFilter mf = obj.AddComponent<MeshFilter>();
         MeshRenderer mr = obj.AddComponent<MeshRenderer>();
