@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 using Unity.VisualScripting;
 using UnityEditor.ShaderGraph.Internal;
 using Unity.Mathematics;
+using UnityEngine.UIElements;
 
 public class convertMap : MonoBehaviour
 {
@@ -691,6 +692,22 @@ public class convertMap : MonoBehaviour
         GameObject terrainObject = Terrain.CreateTerrainGameObject(terrainData);
         terrainObject.transform.position = new Vector3(minX, 0, minY);
         terrain = terrainObject.GetComponent<Terrain>();
+    }
+    bool isContourClosed(MapSymbol contour, float threshold = 1f){
+        if(contour.coords.Count < 3)
+            return false;
+        float distance = Vector2.Distance(contour.coords[0], contour.coords[contour.coords.Count-1]);
+        return distance < threshold;
+    }
+    void generateHeightMap(){
+        List<MapSymbol> contours = null;
+        List<bool> isClosed = null;
+        foreach(MapSymbol symbol in omap){
+            if(symbol.id == "101" || symbol.id == "102" || symbol.id == "103"){
+                contours.Add(symbol);
+                isClosed.Add(isContourClosed(symbol));
+            }
+        }
     }
     // ISOM 2017 symbol set (for now)
     List<MapSymbol> parseOMAP()
