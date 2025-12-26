@@ -13,6 +13,7 @@ using UnityEditor.ShaderGraph.Internal;
 using Unity.Mathematics;
 using UnityEngine.UIElements;
 using UnityEngine.Analytics;
+using System.Text.RegularExpressions;
 
 public class convertMap : MonoBehaviour
 {
@@ -31,6 +32,13 @@ public class convertMap : MonoBehaviour
             2 - area
         */
         public GameObject symbolObject;
+    }
+    public class ContourData
+    {
+        public string id;
+        public List<Vector2> coords;
+        public bool isClosed;
+        public int nestLevel;
     }
     // https://omapwiki.orienteering.sport/specifications/isom/
     public GameObject contour; //101
@@ -700,14 +708,51 @@ public class convertMap : MonoBehaviour
         float distance = Vector2.Distance(contour.coords[0], contour.coords[contour.coords.Count-1]);
         return distance < threshold;
     }
-    void generateHeightMap(){
-        List<MapSymbol> contours = null;
-        List<bool> isClosed = null;
-        foreach(MapSymbol symbol in omap){
-            if(symbol.id == "101" || symbol.id == "102" || symbol.id == "103"){
-                contours.Add(symbol);
-                isClosed.Add(isContourClosed(symbol));
+    bool isPointInPolygon(Vector2 point, List<Vector2> coords){
+        int intersections = 0;
+        int count = coords.Count;
+        for(int i = 0; i < count; i++){
+            Vector2 a = coords[i];
+            Vector2 b = coords[(i+1)%count];
+            if((a.y > point.y) != (b.y > point.y)){
+                float xIntersect = (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x;
+                if(point.x < xIntersect)
+                    intersections++;
             }
+        }
+        return intersections % 2 == 1;
+    }
+    int findNestingLevel(List<Vector2> contour, List<ContourData> allContours){
+        Vector2 point = contour[0];
+        int level = 0;
+        foreach(ContourData otherContour in allContours){
+            if(contour == otherContour.coords){
+                continue;
+            }
+            if(isPointInPolygon(point, otherContour.coords)){
+                level++;
+            }
+        }
+        return level;
+    }
+    void generateHeightMap(){
+        List<ContourData> contours = new List<ContourData>();
+        foreach(MapSymbol symbol in omap){
+            if(symbol.id == "0" || symbol.id == "2" || symbol.id == "4"){
+                ContourData temp = new ContourData();
+                temp.id = symbol.id; 
+                temp.coords = symbol.coords;
+                foreach(var coord in symbol.coords){
+                    print(coord);
+                }
+                temp.isClosed = isContourClosed(symbol);
+                temp.nestLevel = 0;
+                contours.Add(temp);
+            }
+        }
+        for(int i = 0; i < contours.Count; i++){
+            contours[i].nestLevel = findNestingLevel(contours[i].coords, contours);
+            print(contours[i].nestLevel);
         }
     }
     // ISOM 2017 symbol set (for now)
@@ -739,14 +784,12 @@ public class convertMap : MonoBehaviour
                     omap.Add(symbol);
                 }
             }
-            print(omap.Count);    
         }
-        print(omap.Count);
         generateMapBounds();
+        generateHeightMap();
         foreach(MapSymbol symbol in omap)
         {
             isomSymbol refSym = isomSet[int.Parse(symbol.id)];
-            print(isomSet[100].id);
             if (refSym.type == 0)
             {
                 CreatePointObject(refSym, symbol.coords);
@@ -799,7 +842,6 @@ public class convertMap : MonoBehaviour
             Debug.LogWarning($"Too few coordinates for {symbol.isomId}");
             return;
         }
-        print(symbol.symbolObject.name);
         GameObject obj = new GameObject($"{symbol.symbolObject.name}_{symbol.isomId}");
         MeshFilter mf = obj.AddComponent<MeshFilter>();
         MeshRenderer mr = obj.AddComponent<MeshRenderer>();
