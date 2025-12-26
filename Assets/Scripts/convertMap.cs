@@ -14,6 +14,7 @@ using Unity.Mathematics;
 using UnityEngine.UIElements;
 using UnityEngine.Analytics;
 using System.Text.RegularExpressions;
+using System;
 
 public class convertMap : MonoBehaviour
 {
@@ -39,6 +40,11 @@ public class convertMap : MonoBehaviour
         public List<Vector2> coords;
         public bool isClosed;
         public int nestLevel;
+    }
+    public class ElevationPoint
+    {
+        public Vector2 coords;
+        public float height;
     }
     // https://omapwiki.orienteering.sport/specifications/isom/
     public GameObject contour; //101
@@ -735,6 +741,26 @@ public class convertMap : MonoBehaviour
         }
         return level;
     }
+    float IDWInterpolation(Vector2 worldPos, List<ElevationPoint> heightPoints){
+        float power = 2f;
+        int kNearest = 20;
+        List <(float dist, float height)> distances = new List<(float,float)>();
+        foreach(var point in heightPoints){
+            float dist = Vector2.Distance(worldPos, point.coords);
+            if(dist < 0.01f) return point.height;
+            distances.Add((dist, point.height));
+        }
+        distances.Sort((a,b) => a.dist.CompareTo(b.dist));
+        float sumWeights = 0f;
+        float sumValues = 0f;
+        int count = Mathf.Min(kNearest, distances.Count);
+        for(int i = 0; i < count; i++){
+            float weight = 1f/Mathf.Pow(distances[i].dist, power);
+            sumWeights += weight;
+            sumValues += weight * distances[i].height;
+        }
+        return sumValues/sumWeights;
+    }
     void generateHeightMap(){
         List<ContourData> contours = new List<ContourData>();
         foreach(MapSymbol symbol in omap){
@@ -742,9 +768,6 @@ public class convertMap : MonoBehaviour
                 ContourData temp = new ContourData();
                 temp.id = symbol.id; 
                 temp.coords = symbol.coords;
-                foreach(var coord in symbol.coords){
-                    print(coord);
-                }
                 temp.isClosed = isContourClosed(symbol);
                 temp.nestLevel = 0;
                 contours.Add(temp);
@@ -752,8 +775,74 @@ public class convertMap : MonoBehaviour
         }
         for(int i = 0; i < contours.Count; i++){
             contours[i].nestLevel = findNestingLevel(contours[i].coords, contours);
-            print(contours[i].nestLevel);
         }
+        List<ElevationPoint> heightPoints = new List<ElevationPoint>();
+        TerrainData data = terrain.terrainData;
+        int resolution = data.heightmapResolution;
+        float[,] heights = new float[resolution,resolution];
+        float minElev = float.MaxValue;
+        float maxElev = float.MinValue;
+        float sampleInterval = 5f;
+        for(int i = 0; i < contours.Count; i++){
+            /*for(int j = 0; j < contours[i].coords.Count; j++){
+                ElevationPoint temp = new ElevationPoint();
+                temp.coords.x = contours[i].coords[j].x;
+                temp.coords.y = contours[i].coords[j].y;
+                temp.height = 5*contours[i].nestLevel;
+                if(temp.height > maxElev) maxElev = temp.height;
+                if(temp.height < minElev) minElev = temp.height;
+                heightPoints.Add(temp);
+            }*/
+            List<Vector2> coords = contours[i].coords;
+            if(coords.Count < 2) continue;
+            float elevation = 5f * contours[i].nestLevel;
+            float accumulatedDist = 0f;
+            ElevationPoint first = new ElevationPoint();
+            first.coords = coords[0];
+            first.height = elevation;
+            heightPoints.Add(first);
+            int segmentCount = contours[i].isClosed ? coords.Count : coords.Count -1;
+            for(int j = 0; j < segmentCount; j++){
+                Vector2 segmentStart = coords[j];
+                Vector2 segmentEnd = coords[(j+1)%coords.Count];
+                float segmentLength = Vector2.Distance(segmentStart, segmentEnd);
+                float distanceAlongSegment = 0f;
+                while(accumulatedDist + distanceAlongSegment < segmentLength){
+                    float remainingDist = sampleInterval - accumulatedDist;
+                    distanceAlongSegment += remainingDist;
+                    float t = distanceAlongSegment / segmentLength;
+                    Vector2 interpolatedPos = Vector2.Lerp(segmentStart, segmentEnd, t);
+                    ElevationPoint temp = new ElevationPoint();
+                    temp.coords = interpolatedPos;
+                    temp.height = elevation;
+                    heightPoints.Add(temp);
+                    accumulatedDist = 0f;
+                }
+                accumulatedDist += segmentLength - distanceAlongSegment;
+            }
+            if(elevation > maxElev) maxElev = elevation;
+            if(elevation < minElev) minElev = elevation;
+        }
+        if(heightPoints.Count == 0){
+            return;
+        }
+        float elevRange = maxElev-minElev;
+        if(elevRange == 0) elevRange = 1;
+        for(int y = 0; y < resolution; y++){
+            for(int x = 0; x < resolution; x++){
+                Vector2 worldPos = new Vector2(
+                    minX+(float)x/(resolution-1)*(maxX-minX),
+                    minY+(float)y /(resolution-1)*(maxY-minY)
+                );
+                float elevation = IDWInterpolation(worldPos, heightPoints);
+                heights[y,x] = (elevation-minElev)/elevRange;
+            }
+            if(y % 50 == 0) print($"Heightmap progress: {y}/{resolution}");
+        }
+        data.SetHeights(0,0,heights);
+        Vector3 size = data.size;
+        size.y = elevRange;
+        data.size = size;
     }
     // ISOM 2017 symbol set (for now)
     List<MapSymbol> parseOMAP()
