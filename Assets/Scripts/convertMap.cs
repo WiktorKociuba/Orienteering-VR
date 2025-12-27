@@ -45,6 +45,7 @@ public class convertMap : MonoBehaviour
     {
         public Vector2 coords;
         public float height;
+        public int direction;
     }
     // https://omapwiki.orienteering.sport/specifications/isom/
     public GameObject contour; //101
@@ -170,6 +171,7 @@ public class convertMap : MonoBehaviour
     {
         public string id;
         public List<Vector2> coords = new List<Vector2>();
+        public float rotation;
     }
     public Dictionary<int, isomSymbol> isomSet = new Dictionary<int, isomSymbol>();
     void Start()
@@ -702,7 +704,7 @@ public class convertMap : MonoBehaviour
     void generateMapBounds(){
         getMapSize();
         TerrainData terrainData = new TerrainData();
-        terrainData.heightmapResolution = 513;
+        terrainData.heightmapResolution = 2049;
         terrainData.size = new Vector3(math.abs(maxX-minX), 0, math.abs(maxY-minY));
         GameObject terrainObject = Terrain.CreateTerrainGameObject(terrainData);
         terrainObject.transform.position = new Vector3(minX, 0, minY);
@@ -761,8 +763,49 @@ public class convertMap : MonoBehaviour
         }
         return sumValues/sumWeights;
     }
+    // 1 - hill, 2 - deppression, 0 - not set
+    int slopeDirection(MapSymbol slopeLine, ContourData contour){
+        Vector2 direction = new Vector2(
+            Mathf.Cos(slopeLine.rotation),
+            Mathf.Sin(slopeLine.rotation)
+        );
+        Vector2 offset = direction * 5f;
+        slopeLine.coords[0] += offset;
+        if(isPointInPolygon(slopeLine.coords[0], contour.coords))
+            return 2;
+        return 1;
+    }
+    float distancePointToSegment(Vector2 p, Vector2 a, Vector2 b){
+        Vector2 ab = b - a;
+        float lenSq = Vector2.Dot(ab,ab);
+        if(lenSq < 1e-3f)
+            return Vector2.Distance(p,a);
+        float t = Vector2.Dot(p-a,ab)/lenSq;
+        t = Mathf.Clamp01(t);
+        Vector2 closest = a+t*ab;
+        return Vector2.Distance(p,closest);
+    }
+    ContourData findClosestContour(MapSymbol slopeLine, List<ContourData> contours){
+        ContourData closestContour = null;
+        float minDistance = float.MaxValue;
+        Vector2 slopePoint = slopeLine.coords[0];
+        foreach(ContourData contour in contours){
+            int segmentCount = contour.isClosed ? contour.coords.Count : contour.coords.Count -1;
+            for(int i =0; i < segmentCount; i++){
+                Vector2 point1 = contour.coords[i];
+                Vector2 point2 = contour.coords[(i+1) % contour.coords.Count];
+                float dist = distancePointToSegment(slopePoint, point1, point2);
+                if(dist < minDistance){
+                    minDistance = dist;
+                    closestContour = contour;
+                }
+            }
+        }
+        return closestContour;
+    }
     void generateHeightMap(){
         List<ContourData> contours = new List<ContourData>();
+        List<MapSymbol> slopeLines = new List<MapSymbol>();
         foreach(MapSymbol symbol in omap){
             if(symbol.id == "0" || symbol.id == "2" || symbol.id == "4"){
                 ContourData temp = new ContourData();
@@ -771,6 +814,9 @@ public class convertMap : MonoBehaviour
                 temp.isClosed = isContourClosed(symbol);
                 temp.nestLevel = 0;
                 contours.Add(temp);
+            }
+            if(symbol.id == "1"){
+                slopeLines.Add(symbol);
             }
         }
         for(int i = 0; i < contours.Count; i++){
@@ -815,6 +861,7 @@ public class convertMap : MonoBehaviour
                     ElevationPoint temp = new ElevationPoint();
                     temp.coords = interpolatedPos;
                     temp.height = elevation;
+                    temp.direction = 0;
                     heightPoints.Add(temp);
                     accumulatedDist = 0f;
                 }
@@ -1020,6 +1067,10 @@ public class convertMap : MonoBehaviour
         MapSymbol symbol = new MapSymbol();
         string id = symbolNode.Attributes["symbol"].Value;
         symbol.id = id;
+        float rotation = 0;
+        if(symbolNode.Attributes["rotation"] != null)
+            rotation = float.Parse(symbolNode.Attributes["rotation"].Value);
+        symbol.rotation = rotation;
         XmlNode coordsNode = symbolNode.SelectSingleNode("omap:coords", nsmgr);
         if (coordsNode != null)
         {
@@ -1036,7 +1087,7 @@ public class convertMap : MonoBehaviour
                     if (coords.Length == 2)
                     {
                         if (float.TryParse(coords[0], out float x) && float.TryParse(coords[1], out float y))
-                            symbol.coords.Add(new Vector2(x / 100f, y / 100f));
+                            symbol.coords.Add(new Vector2(x / 1000f, y / 1000f));
                     }
                 }
             }
