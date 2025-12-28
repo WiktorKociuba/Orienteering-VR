@@ -40,6 +40,7 @@ public class convertMap : MonoBehaviour
         public List<Vector2> coords;
         public bool isClosed;
         public int nestLevel;
+        public int slopeDir;
     }
     public class ElevationPoint
     {
@@ -704,7 +705,7 @@ public class convertMap : MonoBehaviour
     void generateMapBounds(){
         getMapSize();
         TerrainData terrainData = new TerrainData();
-        terrainData.heightmapResolution = 2049;
+        terrainData.heightmapResolution = 513;
         terrainData.size = new Vector3(math.abs(maxX-minX), 0, math.abs(maxY-minY));
         GameObject terrainObject = Terrain.CreateTerrainGameObject(terrainData);
         terrainObject.transform.position = new Vector3(minX, 0, minY);
@@ -730,14 +731,15 @@ public class convertMap : MonoBehaviour
         }
         return intersections % 2 == 1;
     }
-    int findNestingLevel(List<Vector2> contour, List<ContourData> allContours){
-        Vector2 point = contour[0];
+    int findNestingLevel(ContourData contour, List<ContourData> allContours){
+        Vector2 point = contour.coords[0];
         int level = 0;
         foreach(ContourData otherContour in allContours){
-            if(contour == otherContour.coords){
+            if(contour.coords == otherContour.coords){
                 continue;
             }
             if(isPointInPolygon(point, otherContour.coords)){
+                if(contour.slopeDir == 2)
                 level++;
             }
         }
@@ -763,7 +765,7 @@ public class convertMap : MonoBehaviour
         }
         return sumValues/sumWeights;
     }
-    // 1 - hill, 2 - deppression, 0 - not set
+    // 1 - slope line outwards, 2 - slope line inwards, 0 - not set
     int slopeDirection(MapSymbol slopeLine, ContourData contour){
         Vector2 direction = new Vector2(
             Mathf.Cos(slopeLine.rotation),
@@ -785,11 +787,13 @@ public class convertMap : MonoBehaviour
         Vector2 closest = a+t*ab;
         return Vector2.Distance(p,closest);
     }
-    ContourData findClosestContour(MapSymbol slopeLine, List<ContourData> contours){
+    int findClosestContour(MapSymbol slopeLine, List<ContourData> contours){
         ContourData closestContour = null;
+        int index = -1;
         float minDistance = float.MaxValue;
         Vector2 slopePoint = slopeLine.coords[0];
-        foreach(ContourData contour in contours){
+        for(int idx = 0; idx < contours.Count; idx++){
+            ContourData contour = contours[idx];
             int segmentCount = contour.isClosed ? contour.coords.Count : contour.coords.Count -1;
             for(int i =0; i < segmentCount; i++){
                 Vector2 point1 = contour.coords[i];
@@ -798,10 +802,89 @@ public class convertMap : MonoBehaviour
                 if(dist < minDistance){
                     minDistance = dist;
                     closestContour = contour;
+                    index = idx;
                 }
             }
         }
-        return closestContour;
+        return index;
+    }
+    void assignElevationLevels(List<ContourData> contours){
+        Dictionary<ContourData, ContourData> parentOf = new Dictionary<ContourData, ContourData>();
+        foreach(ContourData child in contours){
+            foreach(ContourData potentialParent in contours){
+                if(child == potentialParent) continue;
+                if(potentialParent.nestLevel == child.nestLevel -1){
+                    if(isPointInPolygon(child.coords[0], potentialParent.coords)){
+                        parentOf[child] = potentialParent;
+                        break;
+                    }
+                }
+            }
+        }
+        Dictionary<ContourData, bool> isRootDepression = new Dictionary<ContourData, bool>();
+        Dictionary<ContourData, int> maxDepth = new Dictionary<ContourData, int>();
+        foreach(ContourData root in contours){
+            if(!parentOf.ContainsKey(root)){
+                bool hasDepression = false;
+                int depth = 0;
+                foreach(ContourData other in contours){
+                    if(other.nestLevel >= root.nestLevel){
+                        if(other == root || (other.nestLevel > root.nestLevel && isPointInPolygon(other.coords[0], root.coords))){
+                            int relativeDepth = other.nestLevel - root.nestLevel;
+                            if(relativeDepth > depth) depth = relativeDepth;
+                            if(other.slopeDir == 2) hasDepression = true;
+                        }
+                    }
+                }
+                isRootDepression[root] = hasDepression;
+                maxDepth[root] = depth;
+            }
+        }
+        Dictionary<ContourData, int> elevationLevel = new Dictionary<ContourData, int>();
+        foreach(ContourData contour in contours){
+            if(!parentOf.ContainsKey(contour)){
+                if(isRootDepression[contour]){
+                    elevationLevel[contour] = maxDepth[contour];
+                }
+                else{
+                    elevationLevel[contour] = 0;
+                }
+            }
+        }
+        int maxNestLevel = 0;
+        foreach(ContourData c in contours){
+            if(c.nestLevel > maxNestLevel) maxNestLevel = c.nestLevel;
+        }
+        for(int nest = 1; nest <= maxNestLevel; nest++){
+            foreach(ContourData contour in contours){
+                if(contour.nestLevel != nest) continue;
+                if(!parentOf.ContainsKey(contour)) continue;
+                ContourData parent = parentOf[contour];
+                int parentElev = elevationLevel[parent];
+                ContourData root = parent;
+                while(parentOf.ContainsKey(root)){
+                    root = parentOf[root];
+                }
+                bool inDepression = isRootDepression.ContainsKey(root) && isRootDepression[root];
+                if(contour.slopeDir == 2){
+                    elevationLevel[contour] = parentElev -1;
+                }
+                else if(contour.slopeDir == 1){
+                    elevationLevel[contour] = parentElev +1;
+                }
+                else if(inDepression){ 
+                    elevationLevel[contour] = parentElev -1;
+                }
+                else{
+                    elevationLevel[contour] = parentElev +1;
+                }
+            }
+        }
+        foreach(ContourData contour in contours){
+            if(elevationLevel.ContainsKey(contour)){
+                contour.nestLevel = elevationLevel[contour];
+            }
+        }
     }
     void generateHeightMap(){
         List<ContourData> contours = new List<ContourData>();
@@ -813,15 +896,21 @@ public class convertMap : MonoBehaviour
                 temp.coords = symbol.coords;
                 temp.isClosed = isContourClosed(symbol);
                 temp.nestLevel = 0;
+                temp.slopeDir = 0;
                 contours.Add(temp);
             }
             if(symbol.id == "1"){
                 slopeLines.Add(symbol);
             }
         }
-        for(int i = 0; i < contours.Count; i++){
-            contours[i].nestLevel = findNestingLevel(contours[i].coords, contours);
+        for(int i = 0; i < slopeLines.Count; i++){
+            int closestContour = findClosestContour(slopeLines[i],contours);
+            contours[closestContour].slopeDir = slopeDirection(slopeLines[i],contours[closestContour]);
         }
+        for(int i = 0; i < contours.Count; i++){
+            contours[i].nestLevel = findNestingLevel(contours[i], contours);
+        }
+        assignElevationLevels(contours);
         List<ElevationPoint> heightPoints = new List<ElevationPoint>();
         TerrainData data = terrain.terrainData;
         int resolution = data.heightmapResolution;
@@ -888,7 +977,7 @@ public class convertMap : MonoBehaviour
         }
         data.SetHeights(0,0,heights);
         Vector3 size = data.size;
-        size.y = elevRange;
+        size.y = 20;
         data.size = size;
     }
     // ISOM 2017 symbol set (for now)
@@ -1087,7 +1176,7 @@ public class convertMap : MonoBehaviour
                     if (coords.Length == 2)
                     {
                         if (float.TryParse(coords[0], out float x) && float.TryParse(coords[1], out float y))
-                            symbol.coords.Add(new Vector2(x / 1000f, y / 1000f));
+                            symbol.coords.Add(new Vector2(x / 100f, y / 100f));
                     }
                 }
             }
