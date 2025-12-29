@@ -15,6 +15,7 @@ using UnityEngine.UIElements;
 using UnityEngine.Analytics;
 using System.Text.RegularExpressions;
 using System;
+using System.IO.Compression;
 
 public class convertMap : MonoBehaviour
 {
@@ -167,6 +168,10 @@ public class convertMap : MonoBehaviour
     public GameObject firstAidPost; //712
     public GameObject refreshmentPoint; //713
     public GameObject continuingPoint; //715
+    public TerrainLayer grassLayer;
+    public TerrainLayer sandLayer;
+    public TerrainLayer rockLayer;
+    public TerrainLayer waterLayer;
     public string filePath;
     public class MapSymbol
     {
@@ -980,6 +985,71 @@ public class convertMap : MonoBehaviour
         size.y = 20;
         data.size = size;
     }
+    /*
+        Painting the terrain
+    */
+    void setupTerrainLayers(){
+        TerrainData data = terrain.terrainData;
+        List<TerrainLayer> layers = new List<TerrainLayer>();
+        if(grassLayer != null)
+            layers.Add(grassLayer);
+        if(sandLayer != null)
+            layers.Add(sandLayer);
+        if(rockLayer != null)
+            layers.Add(rockLayer);
+        data.terrainLayers = layers.ToArray();
+    }
+    int getTerrainLayerIndex(int id){
+        if((id == 74) || (id >= 80 && id <= 92)){
+            return 0;
+        }
+        if(id == 46){
+            return 1;
+        }
+        if(id == 47){
+            return 2;
+        }
+        return -1;
+    }
+    void paintArea(float[,,] alphamap, List<Vector2> coords, int layerIndex, int width, int height){
+        TerrainData data = terrain.terrainData;
+        for(int y = 0; y < height; y++){
+            for(int x = 0; x < width; x++){
+                Vector2 worldPos = new Vector2(
+                    minX + (float)x / (width-1)*(maxX-minX),
+                    minY + (float)y / (height-1)*(maxY-minY)
+                );
+                if(isPointInPolygon(worldPos, coords)){
+                    for(int i = 0; i < alphamap.GetLength(2); i++){
+                        alphamap[y,x,i] = 0f;
+                    }
+                alphamap[y,x,layerIndex] = 1f;
+                }
+            }
+        }
+    }
+    void paintTerrain(){
+        TerrainData data = terrain.terrainData;
+        int alphamapWidth = data.alphamapWidth;
+        int alphamapHeight = data.alphamapHeight;
+        int numLayers = data.terrainLayers.Length;
+        float[,,] alphamap = new float[alphamapHeight, alphamapWidth, numLayers];
+        for(int y = 0; y < alphamapHeight; y++){
+            for(int x = 0; x < alphamapWidth; x++){
+                alphamap[y,x,0] = 1f;
+            }
+        }
+        foreach(MapSymbol symbol in omap){
+            isomSymbol refSym = isomSet[int.Parse(symbol.id)];
+            if(refSym.type == 2){
+                int layerIndex = getTerrainLayerIndex(int.Parse(symbol.id));
+                if(layerIndex >= 0){
+                    paintArea(alphamap, symbol.coords, layerIndex, alphamapWidth, alphamapHeight);
+                }
+            }
+        data.SetAlphamaps(0,0,alphamap);
+        }
+    }
     // ISOM 2017 symbol set (for now)
     List<MapSymbol> parseOMAP()
     {
@@ -1012,9 +1082,21 @@ public class convertMap : MonoBehaviour
         }
         generateMapBounds();
         generateHeightMap();
+        setupTerrainLayers();
+        paintTerrain();
         foreach(MapSymbol symbol in omap)
         {
             isomSymbol refSym = isomSet[int.Parse(symbol.id)];
+            int id = int.Parse(symbol.id);
+            if((id == 74) || (id >= 80 && id <= 92)){
+                continue;
+            }
+            if(id == 46){
+                continue;
+            }
+            if(id == 47){
+                continue;
+            }
             if (refSym.type == 0)
             {
                 CreatePointObject(refSym, symbol.coords);
@@ -1038,7 +1120,8 @@ public class convertMap : MonoBehaviour
             return;
         }
         Vector2 pos = coords[0];
-        GameObject obj = Instantiate(symbol.symbolObject, new Vector3(pos.x, 0, pos.y), Quaternion.identity);
+        float terrainHeight = terrain.SampleHeight(new Vector3(pos.x, 0, pos.y));
+        GameObject obj = Instantiate(symbol.symbolObject, new Vector3(pos.x, terrainHeight, pos.y), Quaternion.identity);
         obj.name = $"{symbol.symbolObject.name}_{symbol.isomId}";
     }
     void CreateLineObject(isomSymbol symbol, List<Vector2> coords)
