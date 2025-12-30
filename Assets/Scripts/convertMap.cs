@@ -744,7 +744,6 @@ public class convertMap : MonoBehaviour
                 continue;
             }
             if(isPointInPolygon(point, otherContour.coords)){
-                if(contour.slopeDir == 2)
                 level++;
             }
         }
@@ -982,7 +981,7 @@ public class convertMap : MonoBehaviour
         }
         data.SetHeights(0,0,heights);
         Vector3 size = data.size;
-        size.y = 20;
+        size.y = maxElev;
         data.size = size;
     }
     /*

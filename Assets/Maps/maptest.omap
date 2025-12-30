@@ -646,7 +646,7 @@ The purple line will extend a bit into the finish symbol. This is a shortcoming 
 <object type="0" symbol="32"><coords count="1">12184 -4480;</coords></object>
 <object type="0" symbol="32"><coords count="1">5652 -2033;</coords></object>
 <object type="1" symbol="0"><coords count="10">8794 -6531;9982 -6222;10600 -6876;10493 -7968;9780 -8704;9103 -8419;8391 -7742;8438 -6994;8783 -6519;8795 -6532;</coords><pattern rotation="0"><coord x="0" y="0"/></pattern></object>
-<object type="0" symbol="1" rotation="4.73645"><coords count="1">5302 -7943;</coords></object>
+<object type="0" symbol="1" rotation="1.55183"><coords count="1">5323 -7988;</coords></object>
 <object type="0" symbol="102"><coords count="1">6114 -11520;</coords></object>
 <object type="0" symbol="102"><coords count="1">10911 -10511;</coords></object>
 <object type="0" symbol="102"><coords count="1">10039 -3344;</coords></object>
@@ -661,7 +661,7 @@ The purple line will extend a bit into the finish symbol. This is a shortcoming 
 </templates>
 <view>
 <grid color="#646464" display="0" alignment="0" additional_rotation="0" unit="1" h_spacing="500" v_spacing="500" h_offset="0" v_offset="0" snapping_enabled="true"/>
-<map_view zoom="5.65684" position_x="5147" position_y="-5265"><map opacity="1" visible="true"/><templates count="0"/></map_view>
+<map_view zoom="5.65684" position_x="18503" position_y="-6072"><map opacity="1" visible="true"/><templates count="0"/></map_view>
 </view>
 </barrier>
 <barrier version="6" required="0.6.0">
@@ -723,6 +723,8 @@ The purple line will extend a bit into the finish symbol. This is a shortcoming 
 <step type="1"><affected_objects part="0"><ref object="17"/></affected_objects></step>
 <step type="2"><affected_objects part="0"><ref object="11"/></affected_objects><contained_objects count="1"><object type="1" symbol="47"><coords count="6">4135 -6596 32;5934 -6733 32;5736 -9340 32;3942 -10880 32;3810 -10870 32;4135 -6596 50;</coords><pattern rotation="0"><coord x="0" y="0"/></pattern></object></contained_objects></step>
 <step type="1"><affected_objects part="0"><ref object="17"/></affected_objects></step>
+<step type="0"><affected_objects part="0"><ref object="10"/></affected_objects><contained_objects count="1"><object type="0" symbol="1" rotation="4.73645"><coords count="1">5302 -7943;</coords></object></contained_objects></step>
+<step type="0"><affected_objects part="0"><ref object="10"/></affected_objects><contained_objects count="1"><object type="0" symbol="1" rotation="1.55183"><coords count="1">6007 -7945;</coords></object></contained_objects></step>
 </undo>
 <redo>
 </redo>
