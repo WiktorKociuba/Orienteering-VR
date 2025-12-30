@@ -16,6 +16,7 @@ using UnityEngine.Analytics;
 using System.Text.RegularExpressions;
 using System;
 using System.IO.Compression;
+using Valve.VR.InteractionSystem;
 
 public class convertMap : MonoBehaviour
 {
@@ -736,6 +737,116 @@ public class convertMap : MonoBehaviour
         }
         return intersections % 2 == 1;
     }
+    int getOffsetEdge(Vector2 point, float offset){
+        float left = minX - offset;
+        float right = maxX + offset;
+        float bottom = minY - offset;
+        float top = maxY + offset;
+        if(Mathf.Abs(point.y-bottom) < 0.1f)
+            return 0;
+        if(Mathf.Abs(point.x-right) < 0.1f)
+            return 1;
+        if(Math.Abs(point.y - top) < 0.1f)
+            return 2;
+        return 3;
+    }
+    float calculatePathLength(Vector2 start, List<Vector2> path){
+        float length = Vector2.Distance(start,path[0]);
+        for(int i = 0; i < path.Count -1; i++){
+            length += Vector2.Distance(path[i],path[i+1]);
+        }
+        return length;
+    }
+    List<Vector2> getBoundsPath(Vector2 start, Vector2 end, float offset){
+        List<Vector2> path = new List<Vector2>();
+        int startEdge = getOffsetEdge(start, offset);
+        int endEdge = getOffsetEdge(end, offset);
+        if(startEdge == endEdge){
+            path.Add(end);
+            return path;
+        }
+        List<Vector2> corners = new List<Vector2>{
+            new Vector2(minX -offset,minY-offset),
+            new Vector2(minX-offset,maxY+offset),
+            new Vector2(maxX+offset,minY-offset),
+            new Vector2(maxX+offset,maxY+offset)
+        };
+        List<Vector2> cwPath = new List<Vector2>();
+        int edge = startEdge;
+        while(edge != endEdge){
+            edge = (edge+1) % 4;
+            cwPath.Add(corners[edge]);
+        }
+        cwPath.Add(end);
+        List<Vector2> ccwPath = new List<Vector2>();
+        edge = startEdge;
+        while(edge != endEdge){
+            edge = (edge -1 +4)%4;
+            ccwPath.Add(corners[edge]);
+        }
+        ccwPath.Add(end);
+        float cwDist = calculatePathLength(start, cwPath);
+        float ccwDist = calculatePathLength(start, ccwPath);
+        return cwDist <= ccwDist ? cwPath : ccwPath;
+    }
+    Vector2 snapToOffsetBoundary(Vector2 point, float offset){
+        float distToLeft = Mathf.Abs(point.x-minX);
+        float distToRight = Mathf.Abs(point.x-maxX);
+        float distToBottom = Mathf.Abs(point.y-minY);
+        float distToTop = Math.Abs(point.y-maxY);
+        float minDist = Mathf.Min(distToBottom, distToLeft, distToRight, distToTop);
+        if(minDist == distToLeft)
+            return new Vector2(minX-offset, point.y);
+        if(minDist == distToRight)
+            return new Vector2(maxX+offset, point.y);
+        if(minDist == distToBottom)
+            return new Vector2(point.x, minY-offset);
+        return new Vector2(point.x, maxY+offset);
+    }
+    List<Vector2> closeOpenContour(List<Vector2> coords, bool isClosed, int offsetIndex){
+        if(isClosed)
+            return coords;
+        float offset = offsetIndex*2f;
+        List<Vector2> closedCoords = new List<Vector2>(coords);
+        Vector2 start = coords[0], end = coords[coords.Count-1];
+        Vector2 startBoundary = snapToOffsetBoundary(start,offset), endBoundary = snapToOffsetBoundary(end,offset);
+        List<Vector2> boundsPath = getBoundsPath(startBoundary, endBoundary, offset);
+        closedCoords.AddRange(boundsPath);
+        return closedCoords;
+    }
+    float getContourExtent(ContourData contour){
+        float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MinValue, maxY = float.MinValue;
+        foreach(Vector2 coord in contour.coords){
+            if(coord.x < minX) 
+                minX = coord.x;
+            if(coord.x > maxX)
+                maxX = coord.x;
+            if(coord.y < minY)
+                minY = coord.y;
+            if(coord.y > maxY)
+                maxY = coord.y;
+        }
+        float width = maxX - minX;
+        float height = maxY - minY;
+        return Mathf.Sqrt(width*width+height*height);
+    }
+    int getOffsetIndex(ContourData contour, ContourData testPoint, List<ContourData> allContours){
+        if(contour.isClosed)
+            return 0;
+        float extent = getContourExtent(contour);
+        int offsetIndex = 0;
+        foreach(ContourData other in allContours){
+            if(other == contour)
+                continue;
+            if(!other.isClosed){
+                float otherExtent = getContourExtent(other);
+                if(extent > otherExtent){
+                    offsetIndex++;
+                }
+            }
+        }
+        return offsetIndex;
+    }
     int findNestingLevel(ContourData contour, List<ContourData> allContours){
         Vector2 point = contour.coords[0];
         int level = 0;
@@ -743,7 +854,9 @@ public class convertMap : MonoBehaviour
             if(contour.coords == otherContour.coords){
                 continue;
             }
-            if(isPointInPolygon(point, otherContour.coords)){
+            int offsetIndex = getOffsetIndex(otherContour, contour, allContours);
+            List<Vector2> closedCoords = closeOpenContour(otherContour.coords, otherContour.isClosed, offsetIndex);
+            if(isPointInPolygon(point, closedCoords)){
                 level++;
             }
         }
@@ -818,7 +931,9 @@ public class convertMap : MonoBehaviour
             foreach(ContourData potentialParent in contours){
                 if(child == potentialParent) continue;
                 if(potentialParent.nestLevel == child.nestLevel -1){
-                    if(isPointInPolygon(child.coords[0], potentialParent.coords)){
+                    int offsetIndex = getOffsetIndex(potentialParent, child, contours);
+                    List<Vector2> closedParentCoords = closeOpenContour(potentialParent.coords, potentialParent.isClosed, offsetIndex);
+                    if(isPointInPolygon(child.coords[0], closedParentCoords)){
                         parentOf[child] = potentialParent;
                         break;
                     }
@@ -831,9 +946,11 @@ public class convertMap : MonoBehaviour
             if(!parentOf.ContainsKey(root)){
                 bool hasDepression = false;
                 int depth = 0;
+                int rootOffsetIndex = getOffsetIndex(root,root,contours);
+                List<Vector2> closedRootCoords = closeOpenContour(root.coords,root.isClosed,rootOffsetIndex);
                 foreach(ContourData other in contours){
                     if(other.nestLevel >= root.nestLevel){
-                        if(other == root || (other.nestLevel > root.nestLevel && isPointInPolygon(other.coords[0], root.coords))){
+                        if(other == root || (other.nestLevel > root.nestLevel && isPointInPolygon(other.coords[0], closedRootCoords))){
                             int relativeDepth = other.nestLevel - root.nestLevel;
                             if(relativeDepth > depth) depth = relativeDepth;
                             if(other.slopeDir == 2) hasDepression = true;
