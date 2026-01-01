@@ -965,10 +965,10 @@ public class convertMap : MonoBehaviour
         foreach(ContourData contour in contours){
             if(!parentOf.ContainsKey(contour)){
                 if(isRootDepression[contour]){
-                    elevationLevel[contour] = maxDepth[contour];
+                    elevationLevel[contour] = maxDepth[contour]+1;
                 }
                 else{
-                    elevationLevel[contour] = 0;
+                    elevationLevel[contour] = contour.nestLevel+1;
                 }
             }
         }
@@ -1076,10 +1076,21 @@ public class convertMap : MonoBehaviour
                     accumulatedDist = 0f;
                 }
                 accumulatedDist += segmentLength - distanceAlongSegment;
+                if(!contours[i].isClosed){
+                    int offsetIndex = getOffsetIndex(contours[i],contours[i],contours);
+                    List<Vector2> closedCoords = closeOpenContour(coords,false,offsetIndex);
+                    for(int k = coords.Count; k < closedCoords.Count; k++){
+                        ElevationPoint boundaryPoint = new ElevationPoint();
+                        boundaryPoint.coords = closedCoords[j];
+                        boundaryPoint.height = elevation;
+                        heightPoints.Add(boundaryPoint);
+                    }
+                }
             }
             if(elevation > maxElev) maxElev = elevation;
             if(elevation < minElev) minElev = elevation;
         }
+        minElev = 0;
         if(heightPoints.Count == 0){
             return;
         }
@@ -1091,7 +1102,61 @@ public class convertMap : MonoBehaviour
                     minX+(float)x/(resolution-1)*(maxX-minX),
                     minY+(float)y /(resolution-1)*(maxY-minY)
                 );
-                float elevation = IDWInterpolation(worldPos, heightPoints);
+                bool insideAnyContour = false;
+                foreach(ContourData contour in contours){
+                    int offsetIndex = getOffsetIndex(contour, contour, contours);
+                    List<Vector2> closedCoords = closeOpenContour(contour.coords, contour.isClosed, offsetIndex);
+                    if(isPointInPolygon(worldPos, closedCoords)){
+                        insideAnyContour = true;
+                        break;
+                    }
+                }
+                float elevation;
+                if(insideAnyContour){
+                    elevation = IDWInterpolation(worldPos, heightPoints);
+                }
+                else{
+                    float nearestDist = float.MaxValue;
+                    float nearestElev = 0;
+                    float nearestEdge = float.MaxValue;
+                    foreach(ContourData contour in contours){
+                        for(int j = 0; j < contour.coords.Count - 1; j++){
+                            float dist = distancePointToSegment(worldPos, contour.coords[j], contour.coords[j+1]);
+                            if(dist < nearestDist){
+                                nearestDist = dist;
+                                nearestElev = 5f * contour.nestLevel;
+                                Vector2 contourPoint = contour.coords[j];
+                                nearestEdge = Mathf.Min(
+                                    Mathf.Abs(worldPos.x - minX),
+                                    Mathf.Abs(worldPos.x - maxX),
+                                    Mathf.Abs(worldPos.y - minY),
+                                    Mathf.Abs(worldPos.y - maxY)
+                                );
+                            }
+                        }
+                    }
+                    float distToEdge = Mathf.Min(
+                        Mathf.Abs(worldPos.x - minX),
+                        Mathf.Abs(worldPos.x - maxX),
+                        Mathf.Abs(worldPos.y - minY),
+                        Mathf.Abs(worldPos.y - maxY)
+                    );
+                    float edgeThreshold = 50f;
+                    if(nearestEdge < edgeThreshold){
+                        float falloff = nearestDist/edgeThreshold;
+                        elevation = nearestElev * Mathf.Max(0.5f, 1f-falloff*0.5f);
+                    }
+                    else{
+                        float totalDist = nearestDist + distToEdge;
+                        float t = nearestDist / totalDist;
+                        if(t <= 0.5f){
+                            elevation = nearestElev * (1f - 2f * t);
+                        }
+                        else{
+                            elevation = 0;
+                        }
+                    }
+                }
                 heights[y,x] = (elevation-minElev)/elevRange;
             }
             if(y % 50 == 0) print($"Heightmap progress: {y}/{resolution}");
@@ -1372,7 +1437,7 @@ public class convertMap : MonoBehaviour
                     if (string.IsNullOrEmpty(trimmedPair))
                         continue;
                     string[] coords = trimmedPair.Split(' ');
-                    if (coords.Length == 2)
+                    if (coords.Length >= 2)
                     {
                         if (float.TryParse(coords[0], out float x) && float.TryParse(coords[1], out float y))
                             symbol.coords.Add(new Vector2(x / 100f, y / 100f));
