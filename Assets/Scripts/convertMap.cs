@@ -806,6 +806,9 @@ public class convertMap : MonoBehaviour
     List<Vector2> closeOpenContour(List<Vector2> coords, bool isClosed, int offsetIndex){
         if(isClosed)
             return coords;
+        foreach(var cood in coords){
+            print(cood);
+        }
         float offset = offsetIndex*2f;
         List<Vector2> closedCoords = new List<Vector2>(coords);
         Vector2 start = coords[0], end = coords[coords.Count-1];
@@ -1095,19 +1098,17 @@ public class convertMap : MonoBehaviour
                 );
                 bool insideAnyContour = false;
                 foreach(ContourData contour in contours){
+                    List<Vector2> testCoords;
                     if(contour.isClosed){
-                        if(isPointInPolygon(worldPos, contour.coords)){
-                            insideAnyContour = true;
-                            break;
-                        }
+                        testCoords = contour.coords;
                     }
                     else{
                         int offsetIndex = getOffsetIndex(contour, contour, contours);
-                        List<Vector2> closedCoords = closeOpenContour(contour.coords, contour.isClosed, offsetIndex);
-                        if(isPointInPolygon(worldPos, closedCoords)){
-                            insideAnyContour = true;
-                            break;
-                        }   
+                        testCoords = closeOpenContour(contour.coords, contour.isClosed, offsetIndex);
+                    }
+                    if(isPointInPolygon(worldPos, testCoords)){
+                        insideAnyContour = true;
+                        break;
                     }
                 }
                 float elevation;
@@ -1117,20 +1118,17 @@ public class convertMap : MonoBehaviour
                 else{
                     float nearestDist = float.MaxValue;
                     float nearestElev = 0;
-                    float nearestEdge = float.MaxValue;
+                    Vector2 nearestContourPoint = Vector2.zero;
                     foreach(ContourData contour in contours){
                         for(int j = 0; j < contour.coords.Count - 1; j++){
                             float dist = distancePointToSegment(worldPos, contour.coords[j], contour.coords[j+1]);
                             if(dist < nearestDist){
                                 nearestDist = dist;
                                 nearestElev = 5f * contour.nestLevel;
-                                Vector2 contourPoint = contour.coords[j];
-                                nearestEdge = Mathf.Min(
-                                    Mathf.Abs(worldPos.x - minX),
-                                    Mathf.Abs(worldPos.x - maxX),
-                                    Mathf.Abs(worldPos.y - minY),
-                                    Mathf.Abs(worldPos.y - maxY)
-                                );
+                                Vector2 ab = contour.coords[j+1]-contour.coords[j];
+                                float lenSq = Vector2.Dot(ab,ab);
+                                float t = Mathf.Clamp01(Vector2.Dot(worldPos-contour.coords[j], ab)/lenSq);
+                                nearestContourPoint = contour.coords[j]+t*ab;
                             }
                         }
                     }
@@ -1140,20 +1138,30 @@ public class convertMap : MonoBehaviour
                         Mathf.Abs(worldPos.y - minY),
                         Mathf.Abs(worldPos.y - maxY)
                     );
-                    float edgeThreshold = 50f;
-                    if(nearestEdge < edgeThreshold && true == false){
-                        float falloff = nearestDist/edgeThreshold;
-                        elevation = nearestElev * Mathf.Max(0.5f, 1f-falloff*0.5f);
+                    float contourDistToEdge = Mathf.Min(
+                        Mathf.Abs(nearestContourPoint.x - minX),
+                        Mathf.Abs(nearestContourPoint.x-maxX),
+                        Mathf.Abs(nearestContourPoint.y-minY),
+                        Mathf.Abs(nearestContourPoint.y-maxY)
+                    );
+                    float edgeThreshold = 20f;
+                    float edgeFalloff = nearestDist/edgeThreshold;
+                    float edgeElev = nearestElev * Mathf.Max(0.3f,1f-edgeFalloff*0.7f);
+                    float totalDist = nearestDist+distToEdge;
+                    float tNormal =nearestDist/totalDist;
+                    float normalElev;
+                    if(tNormal <= 0.5f){
+                        normalElev = nearestElev*(1f-2f*tNormal);
                     }
                     else{
-                        float totalDist = nearestDist + distToEdge;
-                        float t = nearestDist / totalDist;
-                        if(t <= 0.5f){
-                            elevation = nearestElev * (1f - 2f * t);
-                        }
-                        else{
-                            elevation = 0;
-                        }
+                        normalElev = 0;
+                    }
+                    if(contourDistToEdge < edgeThreshold ){
+                        float blendFactor = contourDistToEdge/edgeThreshold;
+                        elevation = Mathf.Lerp(edgeElev,normalElev,blendFactor);
+                    }
+                    else{
+                        elevation = normalElev;
                     }
                 }
                 heights[y,x] = (elevation-minElev)/elevRange;
