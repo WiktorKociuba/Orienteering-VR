@@ -767,9 +767,9 @@ public class convertMap : MonoBehaviour
         }
         List<Vector2> corners = new List<Vector2>{
             new Vector2(minX -offset,minY-offset),
-            new Vector2(minX-offset,maxY+offset),
             new Vector2(maxX+offset,minY-offset),
-            new Vector2(maxX+offset,maxY+offset)
+            new Vector2(maxX+offset,maxY+offset),
+            new Vector2(minX-offset,maxY+offset)
         };
         List<Vector2> cwPath = new List<Vector2>();
         int edge = startEdge;
@@ -810,7 +810,8 @@ public class convertMap : MonoBehaviour
         List<Vector2> closedCoords = new List<Vector2>(coords);
         Vector2 start = coords[0], end = coords[coords.Count-1];
         Vector2 startBoundary = snapToOffsetBoundary(start,offset), endBoundary = snapToOffsetBoundary(end,offset);
-        List<Vector2> boundsPath = getBoundsPath(startBoundary, endBoundary, offset);
+        closedCoords.Add(endBoundary);
+        List<Vector2> boundsPath = getBoundsPath(endBoundary, startBoundary, offset);
         closedCoords.AddRange(boundsPath);
         return closedCoords;
     }
@@ -1076,16 +1077,6 @@ public class convertMap : MonoBehaviour
                     accumulatedDist = 0f;
                 }
                 accumulatedDist += segmentLength - distanceAlongSegment;
-                if(!contours[i].isClosed){
-                    int offsetIndex = getOffsetIndex(contours[i],contours[i],contours);
-                    List<Vector2> closedCoords = closeOpenContour(coords,false,offsetIndex);
-                    for(int k = coords.Count; k < closedCoords.Count; k++){
-                        ElevationPoint boundaryPoint = new ElevationPoint();
-                        boundaryPoint.coords = closedCoords[j];
-                        boundaryPoint.height = elevation;
-                        heightPoints.Add(boundaryPoint);
-                    }
-                }
             }
             if(elevation > maxElev) maxElev = elevation;
             if(elevation < minElev) minElev = elevation;
@@ -1104,11 +1095,19 @@ public class convertMap : MonoBehaviour
                 );
                 bool insideAnyContour = false;
                 foreach(ContourData contour in contours){
-                    int offsetIndex = getOffsetIndex(contour, contour, contours);
-                    List<Vector2> closedCoords = closeOpenContour(contour.coords, contour.isClosed, offsetIndex);
-                    if(isPointInPolygon(worldPos, closedCoords)){
-                        insideAnyContour = true;
-                        break;
+                    if(contour.isClosed){
+                        if(isPointInPolygon(worldPos, contour.coords)){
+                            insideAnyContour = true;
+                            break;
+                        }
+                    }
+                    else{
+                        int offsetIndex = getOffsetIndex(contour, contour, contours);
+                        List<Vector2> closedCoords = closeOpenContour(contour.coords, contour.isClosed, offsetIndex);
+                        if(isPointInPolygon(worldPos, closedCoords)){
+                            insideAnyContour = true;
+                            break;
+                        }   
                     }
                 }
                 float elevation;
@@ -1142,7 +1141,7 @@ public class convertMap : MonoBehaviour
                         Mathf.Abs(worldPos.y - maxY)
                     );
                     float edgeThreshold = 50f;
-                    if(nearestEdge < edgeThreshold){
+                    if(nearestEdge < edgeThreshold && true == false){
                         float falloff = nearestDist/edgeThreshold;
                         elevation = nearestElev * Mathf.Max(0.5f, 1f-falloff*0.5f);
                     }
