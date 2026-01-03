@@ -806,9 +806,6 @@ public class convertMap : MonoBehaviour
     List<Vector2> closeOpenContour(List<Vector2> coords, bool isClosed, int offsetIndex){
         if(isClosed)
             return coords;
-        foreach(var cood in coords){
-            print(cood);
-        }
         float offset = offsetIndex*2f;
         List<Vector2> closedCoords = new List<Vector2>(coords);
         Vector2 start = coords[0], end = coords[coords.Count-1];
@@ -968,12 +965,7 @@ public class convertMap : MonoBehaviour
         Dictionary<ContourData, int> elevationLevel = new Dictionary<ContourData, int>();
         foreach(ContourData contour in contours){
             if(!parentOf.ContainsKey(contour)){
-                if(isRootDepression[contour]){
-                    elevationLevel[contour] = maxDepth[contour]+1;
-                }
-                else{
-                    elevationLevel[contour] = contour.nestLevel+1;
-                }
+                elevationLevel[contour] = contour.nestLevel+1;
             }
         }
         int maxNestLevel = 0;
@@ -992,22 +984,29 @@ public class convertMap : MonoBehaviour
                 }
                 bool inDepression = isRootDepression.ContainsKey(root) && isRootDepression[root];
                 if(contour.slopeDir == 2){
-                    elevationLevel[contour] = parentElev -1;
+                        elevationLevel[contour] = parentElev -1;
                 }
                 else if(contour.slopeDir == 1){
                     elevationLevel[contour] = parentElev +1;
                 }
-                else if(inDepression){ 
-                    elevationLevel[contour] = parentElev -1;
+                else if(inDepression){
+                    elevationLevel[contour] = parentElev-1;
                 }
                 else{
                     elevationLevel[contour] = parentElev +1;
                 }
             }
         }
+        int minLevel = 0;
         foreach(ContourData contour in contours){
             if(elevationLevel.ContainsKey(contour)){
-                contour.nestLevel = elevationLevel[contour];
+                minLevel = Mathf.Min(minLevel, elevationLevel[contour]);
+            }
+        }
+        minLevel*=-1;
+        foreach(ContourData contour in contours){
+            if(elevationLevel.ContainsKey(contour)){
+                contour.nestLevel = elevationLevel[contour]+minLevel;
             }
         }
     }
