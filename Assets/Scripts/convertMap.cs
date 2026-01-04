@@ -1172,13 +1172,6 @@ public class convertMap : MonoBehaviour
         Vector3 size = data.size;
         size.y = maxElev;
         data.size = size;
-        foreach(ContourData contour in contours){
-            print(contour.isClosed);
-            foreach(var coods in contour.coords)
-            {
-                print(coods);
-            }
-        }
     }
     /*
         Painting the terrain
@@ -1240,10 +1233,63 @@ public class convertMap : MonoBehaviour
                 int layerIndex = getTerrainLayerIndex(int.Parse(symbol.id));
                 if(layerIndex >= 0){
                     paintArea(alphamap, symbol.coords, layerIndex, alphamapWidth, alphamapHeight);
+                    spawnTreesOnTerrain(symbol.coords, 0);
                 }
             }
         data.SetAlphamaps(0,0,alphamap);
         }
+    }
+    /*
+        Tree painting
+    */
+    public GameObject[] treePrefabs;
+    TreePrototype[] treePrototypes;
+    void setupTreePrototypes(){
+        TerrainData data = terrain.terrainData;
+        treePrototypes = new TreePrototype[treePrefabs.Length];
+        for(int i = 0; i < treePrefabs.Length; i++){
+            TreePrototype prototype = new TreePrototype();
+            prototype.prefab = treePrefabs[i];
+            treePrototypes[i] = prototype;
+        }
+        if(treePrototypes != null && treePrototypes.Length > 0){
+            data.treePrototypes = treePrototypes;
+            data.RefreshPrototypes();
+        }
+    }
+    void spawnTreesOnTerrain(List<Vector2> coords, int treePrototypeIndex){
+        TerrainData data = terrain.terrainData;
+        setupTreePrototypes();
+        if(data.treePrototypes.Length == 0){
+            Debug.LogWarning("No tree prototypes!");
+            return;
+        }
+        if(treePrototypeIndex >= data.treePrototypes.Length){
+            Debug.LogWarning("Tree prototype index out of range!");
+            return;
+        }
+        List<TreeInstance> newTrees = new List<TreeInstance>(data.treeInstances);
+        foreach(Vector2 coord in coords){
+            Vector3 worldPos = new Vector3(coord.x, 0, coord.y);
+            Vector3 terrainPos = worldPos - terrain.transform.position;
+            Vector3 normalizedPos = new Vector3(
+                terrainPos.x/data.size.x,
+                terrainPos.y/data.size.y,
+                terrainPos.z/data.size.z
+            );
+            if(normalizedPos.x >= 0 && normalizedPos.x <= 1 && normalizedPos.z >= 0 && normalizedPos.z <= 1 && normalizedPos.y >= 0 && normalizedPos.y <= 1){
+                TreeInstance tree = new TreeInstance();
+                tree.position = normalizedPos;
+                tree.prototypeIndex = treePrototypeIndex;
+                tree.widthScale = 1f;
+                tree.heightScale = 1f;
+                tree.color = Color.white;
+                tree.lightmapColor = Color.white;
+                newTrees.Add(tree);
+            }
+        }
+        data.treeInstances = newTrees.ToArray();
+        data.RefreshPrototypes();
     }
     // ISOM 2017 symbol set (for now)
     List<MapSymbol> parseOMAP()
