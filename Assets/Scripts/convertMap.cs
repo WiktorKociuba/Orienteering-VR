@@ -1233,7 +1233,9 @@ public class convertMap : MonoBehaviour
                 int layerIndex = getTerrainLayerIndex(int.Parse(symbol.id));
                 if(layerIndex >= 0){
                     paintArea(alphamap, symbol.coords, layerIndex, alphamapWidth, alphamapHeight);
-                    spawnTreesOnTerrain(symbol.coords, 0);
+                }
+                if(layerIndex == 0){
+                    generateTreePosition(symbol.coords,5, 0);
                 }
             }
         data.SetAlphamaps(0,0,alphamap);
@@ -1258,6 +1260,7 @@ public class convertMap : MonoBehaviour
         }
     }
     void spawnTreesOnTerrain(List<Vector2> coords, int treePrototypeIndex){
+        print(coords.Count);
         TerrainData data = terrain.terrainData;
         setupTreePrototypes();
         if(data.treePrototypes.Length == 0){
@@ -1272,9 +1275,10 @@ public class convertMap : MonoBehaviour
         foreach(Vector2 coord in coords){
             Vector3 worldPos = new Vector3(coord.x, 0, coord.y);
             Vector3 terrainPos = worldPos - terrain.transform.position;
+            float terrainHeight = terrain.SampleHeight(worldPos);
             Vector3 normalizedPos = new Vector3(
                 terrainPos.x/data.size.x,
-                terrainPos.y/data.size.y,
+                terrainHeight/data.size.y,
                 terrainPos.z/data.size.z
             );
             if(normalizedPos.x >= 0 && normalizedPos.x <= 1 && normalizedPos.z >= 0 && normalizedPos.z <= 1 && normalizedPos.y >= 0 && normalizedPos.y <= 1){
@@ -1290,6 +1294,47 @@ public class convertMap : MonoBehaviour
         }
         data.treeInstances = newTrees.ToArray();
         data.RefreshPrototypes();
+    }
+    void generateTreePosition(List<Vector2> coords, float density, int treePrototypeIndex = -1){
+        if(coords.Count < 3)
+            return;
+        float minXBox = coords[0].x, maxXBox = coords[0].x;
+        float minYBox = coords[0].y, maxYBox = coords[0].y;
+        foreach(Vector2 coord in coords){
+            if(coord.x < minXBox) minXBox = coord.x;
+            if(coord.x > maxXBox) maxXBox = coord.x;
+            if(coord.y < minYBox) minYBox = coord.y;
+            if(coord.y > maxYBox) maxYBox = coord.y;
+        }
+        float width = maxXBox-minXBox;
+        float height = maxYBox-minYBox;
+        float area = Mathf.Abs(maxXBox-minXBox)*Mathf.Abs(maxYBox-minYBox);
+        int treeCount = Mathf.RoundToInt((area/100)*density);
+        List<Vector2> treePositions = new List<Vector2>();
+        System.Random rand = new System.Random();
+        float tolerance = 1f;
+        print(treeCount);
+        for(int i = 0, j = 0; i < treeCount && j < treeCount*2;j++){
+            Vector2 randomPos = new Vector2(
+                minXBox + (float)rand.NextDouble()*width,
+                minYBox + (float)rand.NextDouble()*height
+            );
+            if(!isPointInPolygon(randomPos, coords))
+                continue;
+            bool tooClose = false;
+            foreach(Vector2 existingTree in treePositions){
+                if(Vector2.Distance(randomPos, existingTree) < tolerance)
+                {
+                    tooClose = true;
+                    break;
+                }
+            }
+            if(tooClose)
+                continue;
+            treePositions.Add(randomPos);
+            i++;
+        }
+        spawnTreesOnTerrain(treePositions, treePrototypeIndex);
     }
     // ISOM 2017 symbol set (for now)
     List<MapSymbol> parseOMAP()
