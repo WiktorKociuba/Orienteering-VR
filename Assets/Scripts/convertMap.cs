@@ -1234,8 +1234,20 @@ public class convertMap : MonoBehaviour
                 if(layerIndex >= 0){
                     paintArea(alphamap, symbol.coords, layerIndex, alphamapWidth, alphamapHeight);
                 }
-                if(layerIndex == 0){
-                    generateTreePosition(symbol.coords,5, 0);
+                int id = int.Parse(symbol.id);
+                if(id == 80){// white forest
+                    generateTreePosition(symbol.coords,1, 2);
+                }
+                else if(id >= 81 && id <= 83){//vegetationSlow
+                    generateTreePosition(symbol.coords,2,2);
+                }
+                else if(id >= 84 && id <= 87)//vegetationWalk
+                {
+                    generateTreePosition(symbol.coords,3, 0);
+                }
+                else if(id >= 88  && id <= 92)//vegetationFight
+                {
+                    generateTreePosition(symbol.coords,6,0);
                 }
             }
         data.SetAlphamaps(0,0,alphamap);
@@ -1246,18 +1258,42 @@ public class convertMap : MonoBehaviour
     */
     public GameObject[] treePrefabs;
     TreePrototype[] treePrototypes;
+    public float treeBillboardDistance = 50f;
+    public float treeCullDistance = 1000f;
+    public int maxTreesPerCell = 100;
+    void configureTreeLOD(){ // Setup customizable setting for the user later
+        TerrainData data = terrain.terrainData;
+        terrain.treeBillboardDistance = treeBillboardDistance;
+        terrain.treeDistance = treeCullDistance;
+        terrain.treeCrossFadeLength = 5f;
+        terrain.treeMaximumFullLODCount = 50;
+        terrain.detailObjectDistance = 80f;
+        terrain.detailObjectDensity = 0.3f;
+        terrain.heightmapPixelError = 5f;
+        terrain.basemapDistance = 500f;
+        terrain.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        terrain.materialTemplate.enableInstancing = true;
+    }
     void setupTreePrototypes(){
         TerrainData data = terrain.terrainData;
         treePrototypes = new TreePrototype[treePrefabs.Length];
         for(int i = 0; i < treePrefabs.Length; i++){
             TreePrototype prototype = new TreePrototype();
             prototype.prefab = treePrefabs[i];
+            prototype.bendFactor = 0.1f;
+            if(treePrefabs[i]!=null){
+                MeshRenderer renderer = treePrefabs[i].GetComponent<MeshRenderer>();
+                if(renderer != null && renderer.sharedMaterial != null){
+                    renderer.sharedMaterial.enableInstancing = true;
+                }
+            }
             treePrototypes[i] = prototype;
         }
         if(treePrototypes != null && treePrototypes.Length > 0){
             data.treePrototypes = treePrototypes;
             data.RefreshPrototypes();
         }
+        configureTreeLOD();
     }
     void spawnTreesOnTerrain(List<Vector2> coords, int treePrototypeIndex){
         print(coords.Count);
