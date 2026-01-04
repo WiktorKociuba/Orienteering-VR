@@ -1052,7 +1052,8 @@ public class convertMap : MonoBehaviour
                 if(temp.height < minElev) minElev = temp.height;
                 heightPoints.Add(temp);
             }*/
-            List<Vector2> coords = contours[i].coords;
+            int offsetIndex = getOffsetIndex(contours[i],contours[i],contours);
+            List<Vector2> coords = closeOpenContour(contours[i].coords, contours[i].isClosed,offsetIndex);
             if(coords.Count < 2) continue;
             float elevation = 5f * contours[i].nestLevel;
             float accumulatedDist = 0f;
@@ -1171,6 +1172,13 @@ public class convertMap : MonoBehaviour
         Vector3 size = data.size;
         size.y = maxElev;
         data.size = size;
+        foreach(ContourData contour in contours){
+            print(contour.isClosed);
+            foreach(var coods in contour.coords)
+            {
+                print(coods);
+            }
+        }
     }
     /*
         Painting the terrain
