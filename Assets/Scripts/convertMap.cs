@@ -1263,6 +1263,7 @@ public class convertMap : MonoBehaviour
     public float treeBillboardDistance = 50f;
     public float treeCullDistance = 1000f;
     public int maxTreesPerCell = 100;
+    public PhysicsMaterial terrainCollider;
     void configureTreeLOD(){ // Setup customizable setting for the user later
         TerrainData data = terrain.terrainData;
         terrain.treeBillboardDistance = treeBillboardDistance;
@@ -1332,6 +1333,10 @@ public class convertMap : MonoBehaviour
         }
         data.treeInstances = newTrees.ToArray();
         data.RefreshPrototypes();
+        terrain.GetComponent<TerrainCollider>().enabled = true;
+        terrain.GetComponent<TerrainCollider>().material = terrainCollider;
+        terrain.GetComponent<TerrainCollider>().enabled = false;
+        terrain.GetComponent<TerrainCollider>().enabled = true;
     }
     void generateTreePosition(List<Vector2> coords, float density, int treePrototypeIndex = -1){
         if(coords.Count == 1){
