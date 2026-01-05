@@ -1421,7 +1421,7 @@ public class convertMap : MonoBehaviour
     public LayerMask grassLayerMask = ~0;
     private GrassComputeScript grassCompute;
     public Camera playerCamera;
-    public int grassDensityPerSquareMeter = 50;
+    public float grassDensityPerSquareMeter = 0.0001f;
     Camera grassRendererCamera;
     public Material grassShaderMaterial;
     void setupGrassSystem(){     
@@ -1472,7 +1472,55 @@ public class convertMap : MonoBehaviour
         }
         renderMap.enabled = true;
         renderMap.DrawDiffuseMap();
-        //GenerateGrassPosition();
+        generateGrassPositions();
+    }
+    void generateGrassPositions(){
+        if(grassCompute == null){
+            Debug.LogWarning("Grass compute script null");
+            return;
+        }
+        TerrainData data = terrain.terrainData;
+        Vector3 terrainSize = data.size;
+        Vector3 terrainPos = terrain.transform.position;
+        float totalArea = terrainSize.x*terrainSize.z;
+        print(totalArea);
+        int totalGrassCount = Mathf.RoundToInt(totalArea*grassDensityPerSquareMeter);
+        print(totalGrassCount);
+        List<GrassData> grassDataList = new List<GrassData>();
+        System.Random rand = new System.Random();
+        for(int i = 0; i < totalGrassCount; i++){
+            float x = terrainPos.x + (float)rand.NextDouble()*terrainSize.x;
+            float z = terrainPos.z + (float)rand.NextDouble()*terrainSize.z;
+            Vector3 worldPos = new Vector3(x,0,z);
+            float y = terrain.SampleHeight(worldPos);
+            Vector3 normalizedPos = new Vector3(
+                (x-terrainPos.x)/terrainSize.x,
+                0,
+                (z-terrainPos.z)/terrainSize.z
+            );
+            int alphaX = Mathf.FloorToInt(normalizedPos.x * (data.alphamapWidth-1));
+            int alphaZ = Mathf.FloorToInt(normalizedPos.z * (data.alphamapHeight-1));
+            float[,,] alphamap = data.GetAlphamaps(alphaX, alphaZ,1,1);
+            if(alphamap[0,0,0] > 0.5f){
+                Vector3 normal = data.GetInterpolatedNormal(normalizedPos.x, normalizedPos.z);
+                GrassData grass = new GrassData();
+                grass.position = new Vector3(x,y,z);
+                grass.normal = normal;
+                grass.length = new Vector2(
+                    (float) rand.NextDouble(),
+                    (float)rand.NextDouble()
+                );
+                Color baseColor = new Color(0.1f,0.3f,0.1f);
+                grass.color = new Vector3(
+                    baseColor.r + ((float)rand.NextDouble()-0.5f)*0.2f,
+                    baseColor.g + ((float)rand.NextDouble()-0.5f)*0.2f,
+                    baseColor.b + ((float)rand.NextDouble()-0.5f)*0.2f
+                );
+                grassDataList.Add(grass);
+            }
+        }
+        grassCompute.SetGrassPaintedDataList = grassDataList;
+        grassCompute.Reset();
     }
     // ISOM 2017 symbol set (for now)
     List<MapSymbol> parseOMAP()
