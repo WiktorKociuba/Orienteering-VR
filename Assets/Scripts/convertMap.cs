@@ -712,6 +712,7 @@ public class convertMap : MonoBehaviour
         getMapSize();
         TerrainData terrainData = new TerrainData();
         terrainData.heightmapResolution = 513;
+        terrainData.SetDetailResolution(1024,16);
         terrainData.size = new Vector3(math.abs(maxX-minX), 0, math.abs(maxY-minY));
         GameObject terrainObject = Terrain.CreateTerrainGameObject(terrainData);
         terrainObject.transform.position = new Vector3(minX, 0, minY);
@@ -1376,6 +1377,40 @@ public class convertMap : MonoBehaviour
         }
         spawnTreesOnTerrain(treePositions, treePrototypeIndex);
     }
+    /*
+        Spawn point objects on terrain
+    */
+    void addTerrainDetails(GameObject prefab, Vector2 position){
+        TerrainData data = terrain.terrainData;
+        int detailIndex = -1;
+        DetailPrototype[] details = data.detailPrototypes;
+        for(int i = 0; i < details.Length; i++){
+            if(details[i].prototype == prefab){
+                detailIndex = i;
+                break;
+            }
+        }
+        if(detailIndex < 0){
+            DetailPrototype detailPrototype = new DetailPrototype();
+            detailPrototype.prototype = prefab;
+            detailPrototype.renderMode = DetailRenderMode.VertexLit;
+            detailPrototype.usePrototypeMesh = true;
+            Array.Resize(ref details, details.Length+1);
+            details[details.Length-1] = detailPrototype;
+            data.detailPrototypes = details;
+            detailIndex = details.Length-1;
+        }
+        Vector3 terrainPos = new Vector3(position.x, 0, position.y)-terrain.transform.position;
+        float normalizedX = terrainPos.x/data.size.x;
+        float normalizedZ = terrainPos.z/data.size.z;
+        int detailX = Mathf.RoundToInt(normalizedX*data.detailWidth);
+        int detailZ = Mathf.RoundToInt(normalizedZ*data.detailHeight);
+        if(detailX < 0 || detailX > data.detailWidth || detailZ < 0 || detailZ > data.detailWidth)
+            return;
+        int[,] detailLayer = data.GetDetailLayer(0,0,data.detailWidth,data.detailHeight, detailIndex);
+        detailLayer[detailZ, detailX] = 16;
+        data.SetDetailLayer(0,0,detailIndex,detailLayer);
+    }
     // ISOM 2017 symbol set (for now)
     List<MapSymbol> parseOMAP()
     {
@@ -1449,6 +1484,7 @@ public class convertMap : MonoBehaviour
         float terrainHeight = terrain.SampleHeight(new Vector3(pos.x, 0, pos.y));
         GameObject obj = Instantiate(symbol.symbolObject, new Vector3(pos.x, terrainHeight, pos.y), Quaternion.identity);
         obj.name = $"{symbol.symbolObject.name}_{symbol.isomId}";
+        obj.transform.Rotate(0,UnityEngine.Random.Range(0,360),0);
     }
     void CreateLineObject(isomSymbol symbol, List<Vector2> coords)
     {
