@@ -1038,6 +1038,7 @@ public class convertMap : MonoBehaviour
         assignElevationLevels(contours);
         List<ElevationPoint> heightPoints = new List<ElevationPoint>();
         TerrainData data = terrain.terrainData;
+        terrain.gameObject.layer = 7;
         int resolution = data.heightmapResolution;
         float[,] heights = new float[resolution,resolution];
         float minElev = float.MaxValue;
@@ -1411,6 +1412,68 @@ public class convertMap : MonoBehaviour
         detailLayer[detailZ, detailX] = 16;
         data.SetDetailLayer(0,0,detailIndex,detailLayer);
     }
+    /*
+        Setup the grass
+    */
+    public SO_GrassSettings grassSettings;
+    public SO_GrassToolSettings grassToolSettings;
+    public bool generateGrass = true;
+    public LayerMask grassLayerMask = ~0;
+    private GrassComputeScript grassCompute;
+    public Camera playerCamera;
+    public int grassDensityPerSquareMeter = 50;
+    Camera grassRendererCamera;
+    public Material grassShaderMaterial;
+    void setupGrassSystem(){     
+        if(!generateGrass || grassSettings == null){
+            Debug.LogWarning("Grass generation disabled");
+            return;
+        }
+        if(terrain == null){
+            Debug.LogError("Terrain is null");
+            return;
+        }
+        GameObject grassCamObj = new GameObject("GrassRendererCamera");
+        grassRendererCamera = grassCamObj.AddComponent<Camera>();
+        grassRendererCamera.orthographic = true;
+        grassRendererCamera.enabled = false;
+        grassRendererCamera.clearFlags = CameraClearFlags.SolidColor;
+        grassRendererCamera.backgroundColor = Color.black;
+        grassRendererCamera.cullingMask = grassLayerMask;
+        grassRendererCamera.depth = -100;
+        TerrainData data = terrain.terrainData;
+        Vector3 terrainCenter = terrain.transform.position + new Vector3(data.size.x / 2f, data.size.y + 50f, data.size.z/2f);
+        grassCamObj.transform.position = terrainCenter;
+        grassCamObj.transform.rotation = Quaternion.Euler(90f,0f,0f);
+        grassRendererCamera.orthographicSize = Mathf.Max(data.size.x, data.size.z)/2f;
+        GameObject grassObject = new GameObject("GrassSystem");
+        grassCompute = grassObject.AddComponent<GrassComputeScript>();
+        grassCompute.currentPresets = grassSettings;
+        Type grassComputeType = typeof(GrassComputeScript);
+        var instantiatedMaterialVar = grassComputeType.GetField("m_InstantiatedMaterial", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if(instantiatedMaterialVar != null){
+            instantiatedMaterialVar.SetValue(grassCompute, grassShaderMaterial);
+        }
+        GameObject renderMapObj = new GameObject("TerrainRenderer");
+        RenderTerrainMap renderMap = renderMapObj.gameObject.AddComponent<RenderTerrainMap>();
+        renderMap.camToDrawWith = grassRendererCamera;
+        renderMap.resolution = 512;
+        renderMap.adjustScaling = 2.5f;
+        renderMap.repeatRate = 5f;
+        Type renderMapType = typeof(RenderTerrainMap);
+        var terrainsField  = renderMapType.GetField("terrains", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if(terrainsField != null){
+            Terrain[] terrainsArray = new Terrain[]{terrain};
+            terrainsField.SetValue(renderMap, terrainsArray);
+        }
+        var layerField = renderMapType.GetField("layer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if(layerField != null){
+            layerField.SetValue(renderMap, grassLayerMask);
+        }
+        renderMap.enabled = true;
+        renderMap.DrawDiffuseMap();
+        //GenerateGrassPosition();
+    }
     // ISOM 2017 symbol set (for now)
     List<MapSymbol> parseOMAP()
     {
@@ -1445,6 +1508,7 @@ public class convertMap : MonoBehaviour
         generateHeightMap();
         setupTerrainLayers();
         paintTerrain();
+        setupGrassSystem();
         foreach(MapSymbol symbol in omap)
         {
             isomSymbol refSym = isomSet[int.Parse(symbol.id)];
