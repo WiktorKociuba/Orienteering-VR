@@ -1266,7 +1266,7 @@ public class convertMap : MonoBehaviour
         terrain.treeBillboardDistance = treeBillboardDistance;
         terrain.treeDistance = treeCullDistance;
         terrain.treeCrossFadeLength = 5f;
-        terrain.treeMaximumFullLODCount = 50;
+        terrain.treeMaximumFullLODCount = 25;
         terrain.detailObjectDistance = 80f;
         terrain.detailObjectDensity = 0.3f;
         terrain.heightmapPixelError = 5f;
@@ -1332,7 +1332,11 @@ public class convertMap : MonoBehaviour
         data.RefreshPrototypes();
     }
     void generateTreePosition(List<Vector2> coords, float density, int treePrototypeIndex = -1){
-        if(coords.Count < 3)
+        if(coords.Count == 1){
+            spawnTreesOnTerrain(coords, treePrototypeIndex);
+            return;
+        }
+        else if(coords.Count < 3)
             return;
         float minXBox = coords[0].x, maxXBox = coords[0].x;
         float minYBox = coords[0].y, maxYBox = coords[0].y;
@@ -1342,7 +1346,7 @@ public class convertMap : MonoBehaviour
             if(coord.y < minYBox) minYBox = coord.y;
             if(coord.y > maxYBox) maxYBox = coord.y;
         }
-        float width = maxXBox-minXBox;
+        float width        = maxXBox-minXBox;
         float height = maxYBox-minYBox;
         float area = Mathf.Abs(maxXBox-minXBox)*Mathf.Abs(maxYBox-minYBox);
         int treeCount = Mathf.RoundToInt((area/100)*density);
