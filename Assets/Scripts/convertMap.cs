@@ -17,6 +17,7 @@ using System.Text.RegularExpressions;
 using System;
 using System.IO.Compression;
 using Valve.VR.InteractionSystem;
+using Mono.Cecil;
 
 public class convertMap : MonoBehaviour
 {
@@ -763,7 +764,9 @@ public class convertMap : MonoBehaviour
         int startEdge = getOffsetEdge(start, offset);
         int endEdge = getOffsetEdge(end, offset);
         if(startEdge == endEdge){
-            path.Add(end);
+            if(Vector2.Distance(start, end) > 0.1f){
+                path.Add(end);
+            }
             return path;
         }
         List<Vector2> corners = new List<Vector2>{
@@ -782,8 +785,8 @@ public class convertMap : MonoBehaviour
         List<Vector2> ccwPath = new List<Vector2>();
         edge = startEdge;
         while(edge != endEdge){
-            edge = (edge -1 +4)%4;
             ccwPath.Add(corners[edge]);
+            edge = (edge -1 +4)%4;
         }
         ccwPath.Add(end);
         float cwDist = calculatePathLength(start, cwPath);
@@ -791,6 +794,28 @@ public class convertMap : MonoBehaviour
         return cwDist <= ccwDist ? cwPath : ccwPath;
     }
     Vector2 snapToOffsetBoundary(Vector2 point, float offset){
+        float left = minX;
+        float right = maxX;
+        float bottom = minY;
+        float top = maxY;
+        Vector2 bottomLeft = new Vector2(left,bottom);
+        Vector2 bottomRight = new Vector2(right, bottom);
+        Vector2 topRight = new Vector2(right,top);
+        Vector2 topLeft = new Vector2(left, top);
+        float distToBottomLeft = Vector2.Distance(point, bottomLeft);
+        float distToBottomRight = Vector2.Distance(point, bottomRight);
+        float distToTopRight = Vector2.Distance(point,topRight);
+        float distToTopLeft = Vector2.Distance(point,topLeft);
+        float minCornerDist = Mathf.Min(distToBottomLeft, distToBottomRight, distToTopLeft, distToTopRight);
+        if(minCornerDist < 2f){
+            if(minCornerDist == distToBottomLeft)
+                return bottomLeft;
+            if(minCornerDist == distToBottomRight)
+                return bottomRight;
+            if(minCornerDist == distToTopRight)
+                return topRight;
+            return topLeft;
+        }
         float distToLeft = Mathf.Abs(point.x-minX);
         float distToRight = Mathf.Abs(point.x-maxX);
         float distToBottom = Mathf.Abs(point.y-minY);
@@ -817,19 +842,19 @@ public class convertMap : MonoBehaviour
         return closedCoords;
     }
     float getContourExtent(ContourData contour){
-        float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MinValue, maxY = float.MinValue;
+        float minXl = float.MaxValue, minYl = float.MaxValue, maxXl = float.MinValue, maxYl = float.MinValue;
         foreach(Vector2 coord in contour.coords){
-            if(coord.x < minX) 
-                minX = coord.x;
-            if(coord.x > maxX)
-                maxX = coord.x;
-            if(coord.y < minY)
-                minY = coord.y;
-            if(coord.y > maxY)
-                maxY = coord.y;
+            if(coord.x < minXl) 
+                minXl = coord.x;
+            if(coord.x > maxXl)
+                maxXl = coord.x;
+            if(coord.y < minYl)
+                minYl = coord.y;
+            if(coord.y > maxYl)
+                maxYl = coord.y;
         }
-        float width = maxX - minX;
-        float height = maxY - minY;
+        float width = maxXl - minXl;
+        float height = maxYl - minYl;
         return Mathf.Sqrt(width*width+height*height);
     }
     int getOffsetIndex(ContourData contour, ContourData testPoint, List<ContourData> allContours){
@@ -888,11 +913,11 @@ public class convertMap : MonoBehaviour
     int slopeDirection(MapSymbol slopeLine, ContourData contour){
         Vector2 direction = new Vector2(
             Mathf.Cos(slopeLine.rotation),
-            Mathf.Sin(slopeLine.rotation)
+            -Mathf.Sin(slopeLine.rotation)
         );
         Vector2 offset = direction * 5f;
-        slopeLine.coords[0] += offset;
-        if(isPointInPolygon(slopeLine.coords[0], contour.coords))
+        Vector2 testPoint = slopeLine.coords[0] + offset;
+        if(isPointInPolygon(testPoint, contour.coords))
             return 2;
         return 1;
     }
@@ -1168,7 +1193,6 @@ public class convertMap : MonoBehaviour
                 }
                 heights[y,x] = (elevation-minElev)/elevRange;
             }
-            if(y % 50 == 0) print($"Heightmap progress: {y}/{resolution}");
         }
         data.SetHeights(0,0,heights);
         Vector3 size = data.size;
@@ -1299,7 +1323,6 @@ public class convertMap : MonoBehaviour
         configureTreeLOD();
     }
     void spawnTreesOnTerrain(List<Vector2> coords, int treePrototypeIndex){
-        print(coords.Count);
         TerrainData data = terrain.terrainData;
         setupTreePrototypes();
         if(data.treePrototypes.Length == 0){
@@ -1360,7 +1383,6 @@ public class convertMap : MonoBehaviour
         List<Vector2> treePositions = new List<Vector2>();
         System.Random rand = new System.Random();
         float tolerance = 1f;
-        print(treeCount);
         for(int i = 0, j = 0; i < treeCount && j < treeCount*2;j++){
             Vector2 randomPos = new Vector2(
                 minXBox + (float)rand.NextDouble()*width,
@@ -1488,9 +1510,7 @@ public class convertMap : MonoBehaviour
         Vector3 terrainSize = data.size;
         Vector3 terrainPos = terrain.transform.position;
         float totalArea = terrainSize.x*terrainSize.z;
-        print(totalArea);
         int totalGrassCount = Mathf.RoundToInt(totalArea*grassDensityPerSquareMeter);
-        print(totalGrassCount);
         List<GrassData> grassDataList = new List<GrassData>();
         System.Random rand = new System.Random();
         for(int i = 0; i < totalGrassCount; i++){
@@ -1639,22 +1659,22 @@ public class convertMap : MonoBehaviour
             float segmentLength = Vector2.Distance(start,end);
             Vector2 direction = (end-start).normalized;
             int objectCount = Mathf.CeilToInt(segmentLength/objectLength);
-            float spacing = segmentLength/objectLength;
+            float spacing = objectLength;
             float angle = Mathf.Atan2(direction.y,direction.x)*Mathf.Rad2Deg;
             Quaternion rotation;
             if(!longerSide){
-                rotation = Quaternion.Euler(angle, 0, 0);
+                rotation = Quaternion.Euler(0, angle, 0);
             }
             else{
-                rotation = Quaternion.Euler(0,0,angle);
+                rotation = Quaternion.Euler(0,angle,0);
             }
             for(int j = 0; j < objectCount; j++){
                 float lengthToAdd = j*spacing;
                 Vector2 pos2D = start+direction*lengthToAdd;
                 float terrainHeight = terrain.SampleHeight(new Vector3(pos2D.x,0,pos2D.y));
                 Vector3 position = new Vector3(pos2D.x,terrainHeight,pos2D.y);
-            GameObject obj= Instantiate(symbol.symbolObject, position, rotation, parentObj.transform);
-            obj.name = $"{symbol.symbolObject.name}";
+                GameObject obj= Instantiate(symbol.symbolObject, position, rotation, parentObj.transform);
+                obj.name = $"{symbol.symbolObject.name}";
             }
         }
 
@@ -1720,23 +1740,23 @@ public class convertMap : MonoBehaviour
     Vector2[] GenerateUVs(List<Vector2> coords)
     {
         Vector2[] uvs = new Vector2[coords.Count];
-        float minX = coords[0].x;
-        float maxX = coords[0].x;
-        float minY = coords[0].y;
-        float maxY = coords[0].y;
+        float minXl = coords[0].x;
+        float maxXl = coords[0].x;
+        float minYl = coords[0].y;
+        float maxYl = coords[0].y;
         for (int i = 1; i < coords.Count; i++)
         {
-            if (coords[i].x < minX)
-                minX = coords[i].x;
-            if (coords[i].x > maxX)
-                maxX = coords[i].x;
-            if (coords[i].y < minY)
-                minY = coords[i].y;
-            if (coords[i].y > maxY)
-                minY = coords[i].y;
+            if (coords[i].x < minXl)
+                minXl = coords[i].x;
+            if (coords[i].x > maxXl)
+                maxXl = coords[i].x;
+            if (coords[i].y < minYl)
+                minYl = coords[i].y;
+            if (coords[i].y > maxYl)
+                minYl = coords[i].y;
         }
-        float rangeX = maxX - minX;
-        float rangeY = maxY - minY;
+        float rangeX = maxXl - minXl;
+        float rangeY = maxYl - minYl;
         if (rangeX == 0)
             rangeX = 1f;
         if (rangeY == 0)
@@ -1744,8 +1764,8 @@ public class convertMap : MonoBehaviour
         for(int i = 0; i < coords.Count; i++)
         {
             uvs[i] = new Vector2(
-                (coords[i].x - minX) / rangeX,
-                (coords[i].y - minY) / rangeY
+                (coords[i].x - minXl) / rangeX,
+                (coords[i].y - minYl) / rangeY
             );
         }
         return uvs;
@@ -1774,8 +1794,10 @@ public class convertMap : MonoBehaviour
                     string[] coords = trimmedPair.Split(' ');
                     if (coords.Length >= 2)
                     {
-                        if (float.TryParse(coords[0], out float x) && float.TryParse(coords[1], out float y))
+                        if (float.TryParse(coords[0], out float x) && float.TryParse(coords[1], out float y)){
+                            y = -y;
                             symbol.coords.Add(new Vector2(x / 100f, y / 100f));
+                        }
                     }
                 }
             }
