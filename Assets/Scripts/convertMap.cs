@@ -1,23 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Xml;
-using System.IO;
-using Unity.VisualScripting.AssemblyQualifiedNameParser;
-using UnityEngine.Rendering;
-using NUnit.Framework.Constraints;
-using UnityEditor.Rendering;
-using System.Linq.Expressions;
-using System.Security.Cryptography;
-using Unity.VisualScripting;
-using UnityEditor.ShaderGraph.Internal;
 using Unity.Mathematics;
-using UnityEngine.UIElements;
-using UnityEngine.Analytics;
-using System.Text.RegularExpressions;
 using System;
-using System.IO.Compression;
-using Valve.VR.InteractionSystem;
-using Mono.Cecil;
 
 public class convertMap : MonoBehaviour
 {
@@ -1266,14 +1251,17 @@ public class convertMap : MonoBehaviour
                 }
                 else if(id >= 81 && id <= 83){//vegetationSlow
                     generateTreePosition(symbol.coords,2,2);
+                    spawnSlowZones(symbol.coords,0);
                 }
                 else if(id >= 84 && id <= 87)//vegetationWalk
                 {
                     generateTreePosition(symbol.coords,3, 0);
+                    spawnSlowZones(symbol.coords,1);
                 }
                 else if(id >= 88  && id <= 92)//vegetationFight
                 {
                     generateTreePosition(symbol.coords,6,0);
+                    spawnSlowZones(symbol.coords,2);
                 }
             }
         data.SetAlphamaps(0,0,alphamap);
@@ -1546,6 +1534,48 @@ public class convertMap : MonoBehaviour
         }
         grassCompute.SetGrassPaintedDataList = grassDataList;
         grassCompute.Reset();
+    }
+    /*
+        Slow zones setup
+    */
+    public GameObject vegetationSlowSZ;
+    public GameObject vegetationWalkSZ;
+    public GameObject vegetationFightSZ;
+    GameObject slowZonePar;
+    void spawnSlowZones(List<Vector2> coords, int vegeType/*0-Slow;1-Walk;2-Fight*/){
+        if(slowZonePar == null){
+            slowZonePar = new GameObject("SlowZones");
+        }
+        GameObject slowZonePrefab;
+        switch(vegeType){
+            case 0: slowZonePrefab = vegetationSlowSZ; break;
+            case 1: slowZonePrefab = vegetationWalkSZ; break;
+            case 2: slowZonePrefab = vegetationFightSZ; break;
+            default: Debug.LogWarning("No vegetype"); return;
+        }
+        MeshFilter meshFilter = slowZonePrefab.GetComponent<MeshFilter>();
+        if(meshFilter == null || meshFilter.sharedMesh == null){
+            Debug.LogWarning("Check slow zone prefab");
+            return;
+        }
+        Bounds bounds = meshFilter.sharedMesh.bounds;
+        float baseLength = bounds.size.z;
+        float baseWidth = bounds.size.x;
+        for(int i = 0; i < coords.Count; i++){
+            float length = Vector2.Distance(coords[i],coords[(i+1)%coords.Count]);
+            Vector2 direction = (coords[(i+1)%coords.Count]-coords[i]).normalized;
+            float angle = Mathf.Atan2(direction.x,direction.y)*Mathf.Rad2Deg;
+            Quaternion rotation = Quaternion.Euler(0, angle, 0);
+            Vector2 midpoint = (coords[i]+coords[(i+1)%coords.Count])/2f;
+            float terrainHeight = terrain.SampleHeight(new Vector3(midpoint.x,0,midpoint.y));
+            Vector3 position = new Vector3(midpoint.x, terrainHeight, midpoint.y);
+            float scaleZ = length/baseLength;
+            float scaleX = 0f;
+            float scaleY = 500f;
+            GameObject slowZoneObj = Instantiate(slowZonePrefab, position, rotation, slowZonePar.transform);
+            slowZoneObj.name = $"SlowZoneSegment_{i}_vegeType_{vegeType}";
+            slowZoneObj.transform.localScale = new Vector3(scaleX, scaleY, scaleZ);
+        }
     }
     // ISOM 2017 symbol set (for now)
     List<MapSymbol> parseOMAP()
