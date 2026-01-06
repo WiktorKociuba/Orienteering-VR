@@ -1614,13 +1614,50 @@ public class convertMap : MonoBehaviour
             Debug.LogWarning($"Too few coordinates for {symbol.isomId}");
             return;
         }
-        GameObject obj = new GameObject($"{symbol.symbolObject.name}_{symbol.isomId}");
-        Vector3 sizes = symbol.symbolObject.GetComponent<MeshFilter>().mesh.bounds.size;
-        foreach(Vector2 coord in coords)
-        {
-            
-            GameObject newObj = Instantiate(obj, new Vector3(coord.x,0,coord.y), Quaternion.identity);
+        MeshFilter meshFilter = symbol.symbolObject.GetComponent<MeshFilter>();
+        if(meshFilter == null || meshFilter.sharedMesh == null){
+            Debug.LogWarning($"No mesh found for {symbol.isomId}");
+            return;
         }
+        Bounds bounds = meshFilter.sharedMesh.bounds;
+        float objectLengthX = bounds.size.x;
+        float objectLengthZ = bounds.size.z;
+        float objectLength;
+        bool longerSide; // 0 - x, 1 - z
+        if(objectLengthX > objectLengthZ){
+            objectLength = objectLengthX;
+            longerSide = false;
+        }
+        else{
+            objectLength = objectLengthZ;
+            longerSide = true;
+        }
+        GameObject parentObj = new GameObject($"LineObject_{symbol.symbolObject.name}_id_{symbol.isomId}");
+        for(int i = 0; i < coords.Count-1; i++){
+            Vector2 start = coords[i];
+            Vector2 end = coords[i+1];
+            float segmentLength = Vector2.Distance(start,end);
+            Vector2 direction = (end-start).normalized;
+            int objectCount = Mathf.CeilToInt(segmentLength/objectLength);
+            float spacing = segmentLength/objectLength;
+            float angle = Mathf.Atan2(direction.y,direction.x)*Mathf.Rad2Deg;
+            Quaternion rotation;
+            if(!longerSide){
+                rotation = Quaternion.Euler(angle, 0, 0);
+            }
+            else{
+                rotation = Quaternion.Euler(0,0,angle);
+            }
+            for(int j = 0; j < objectCount; j++){
+                float lengthToAdd = j*spacing;
+                Vector2 pos2D = start+direction*lengthToAdd;
+                float terrainHeight = terrain.SampleHeight(new Vector3(pos2D.x,0,pos2D.y));
+                Vector3 position = new Vector3(pos2D.x,terrainHeight,pos2D.y);
+            GameObject obj= Instantiate(symbol.symbolObject, position, rotation, parentObj.transform);
+            obj.name = $"{symbol.symbolObject.name}";
+            }
+        }
+
     }
     void CreateAreaObject(isomSymbol symbol, List<Vector2> coords)
     {
