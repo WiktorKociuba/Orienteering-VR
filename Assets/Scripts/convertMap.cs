@@ -3,8 +3,6 @@ using UnityEngine;
 using System.Xml;
 using Unity.Mathematics;
 using System;
-using Unity.VisualScripting;
-using System.Net;
 
 public class convertMap : MonoBehaviour
 {
@@ -1357,7 +1355,7 @@ public class convertMap : MonoBehaviour
             if(coord.y < minYBox) minYBox = coord.y;
             if(coord.y > maxYBox) maxYBox = coord.y;
         }
-        float width        = maxXBox-minXBox;
+        float width = maxXBox-minXBox;
         float height = maxYBox-minYBox;
         float area = Mathf.Abs(maxXBox-minXBox)*Mathf.Abs(maxYBox-minYBox);
         int treeCount = Mathf.RoundToInt((area/100)*density);
@@ -1617,9 +1615,16 @@ public class convertMap : MonoBehaviour
         List<pointLfFeature> pointFeatures = new List<pointLfFeature>();
         List<lineLfFeature> lineFeatures = new List<lineLfFeature>();
         float terrainMaxHeight = data.size.y;
+        float widthl;
+        float heightl;
+        float area;
+        int hoesCount;
+        System.Random rand = new System.Random();
         foreach(MapSymbol symbol in omap){
             pointLfFeature ptft = new pointLfFeature();
             lineLfFeature lift = new  lineLfFeature();
+            float minXl = float.MaxValue, maxXl = float.MinValue;
+            float minYl = float.MaxValue, maxYl = float.MinValue;
             switch(isomSet[int.Parse(symbol.id)].isomId){
                 case 104: //earthBank - already hanled by contours
                     continue;
@@ -1635,12 +1640,12 @@ public class convertMap : MonoBehaviour
                     continue;
                 case 107: //erosionGully
                     lift.coords = symbol.coords;
-                    lift.elevChange = -3f/terrainMaxHeight;
+                    lift.elevChange = -1.5f/terrainMaxHeight;
                     lineFeatures.Add(lift);
                     continue;
                 case 108: //smallErosionGully;
                     lift.coords = symbol.coords;
-                    lift.elevChange = -1.5f/terrainMaxHeight;
+                    lift.elevChange = -1f/terrainMaxHeight;
                     lineFeatures.Add(lift);
                     continue;
                 case 109: //smalKnoll
@@ -1664,8 +1669,54 @@ public class convertMap : MonoBehaviour
                     pointFeatures.Add(ptft);
                     continue;
                 case 113: //brokenGround
+                    for(int i = 0; i < symbol.coords.Count; i++){
+                        minXl = Mathf.Min(minXl,symbol.coords[i].x);
+                        maxXl = Mathf.Max(maxXl,symbol.coords[i].x);
+                        minYl = Mathf.Min(minYl,symbol.coords[i].y);
+                        maxYl = Mathf.Max(maxYl,symbol.coords[i].x);
+                    }
+                    widthl = maxXl-minXl;
+                    heightl = maxYl-minYl;
+                    area = heightl*widthl;
+                    hoesCount = Mathf.RoundToInt(area*0.2f);
+                    for(int i = 0, j = 0; i < hoesCount && j < hoesCount*2; j++){
+                        Vector2 rarndomPos = new Vector2(
+                            minXl + (float)rand.NextDouble()*widthl,
+                            minYl + (float)rand.NextDouble()*heightl
+                        );
+                        if(isPointInPolygon(rarndomPos, symbol.coords)){
+                            pointLfFeature lPtft = new pointLfFeature();
+                            lPtft.coords = rarndomPos;
+                            lPtft.elevChange = -0.2f/terrainMaxHeight;
+                            pointFeatures.Add(lPtft);
+                            i++;
+                        }
+                    }
                     continue;
                 case 114: //veryBrokenGround
+                    for(int i = 0; i < symbol.coords.Count; i++){
+                        minXl = Mathf.Min(minXl,symbol.coords[i].x);
+                        maxXl = Mathf.Max(maxXl,symbol.coords[i].x);
+                        minYl = Mathf.Min(minYl,symbol.coords[i].y);
+                        maxYl = Mathf.Max(maxYl,symbol.coords[i].x);
+                    }
+                    widthl = maxXl-minXl;
+                    heightl = maxYl-minYl;
+                    area = heightl*widthl;
+                    hoesCount = Mathf.RoundToInt(area*0.3f);
+                    for(int i = 0, j = 0; i < hoesCount && j < hoesCount*2; j++){
+                        Vector2 rarndomPos = new Vector2(
+                            minXl + (float)rand.NextDouble()*widthl,
+                            minYl + (float)rand.NextDouble()*heightl
+                        );
+                        if(isPointInPolygon(rarndomPos, symbol.coords)){
+                            pointLfFeature lPtft = new pointLfFeature();
+                            lPtft.coords = rarndomPos;
+                            lPtft.elevChange = -0.2f/terrainMaxHeight;
+                            pointFeatures.Add(lPtft);
+                            i++;
+                        }
+                    }
                     continue;
                 case 115: //prominent land feature
                     ptft.coords = symbol.coords[0];
