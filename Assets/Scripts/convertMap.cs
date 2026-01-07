@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Xml;
 using Unity.Mathematics;
 using System;
+using Unity.VisualScripting;
 
 public class convertMap : MonoBehaviour
 {
@@ -1055,15 +1056,6 @@ public class convertMap : MonoBehaviour
         float maxElev = float.MinValue;
         float sampleInterval = 5f;
         for(int i = 0; i < contours.Count; i++){
-            /*for(int j = 0; j < contours[i].coords.Count; j++){
-                ElevationPoint temp = new ElevationPoint();
-                temp.coords.x = contours[i].coords[j].x;
-                temp.coords.y = contours[i].coords[j].y;
-                temp.height = 5*contours[i].nestLevel;
-                if(temp.height > maxElev) maxElev = temp.height;
-                if(temp.height < minElev) minElev = temp.height;
-                heightPoints.Add(temp);
-            }*/
             int offsetIndex = getOffsetIndex(contours[i],contours[i],contours);
             List<Vector2> coords = closeOpenContour(contours[i].coords, contours[i].isClosed,offsetIndex);
             if(coords.Count < 2) continue;
@@ -1604,6 +1596,89 @@ public class convertMap : MonoBehaviour
             }
         }
     }
+    /*
+        Landform features
+    */
+    public class pointLfFeature
+    {
+        public Vector2 coords;
+        public float elevChange;
+    }
+    void processLandformFeatures(){
+        TerrainData data = terrain.terrainData;
+        int res = data.heightmapResolution;
+        float[,] heights = data.GetHeights(0,0,res,res);
+        List<pointLfFeature> pointFeatures = new List<pointLfFeature>();
+        float terrainMaxHeight = data.size.y;
+        foreach(MapSymbol symbol in omap){
+            pointLfFeature ptft = new pointLfFeature();
+            switch(isomSet[int.Parse(symbol.id)].isomId){
+                case 104: //earthBank
+                    continue;
+                case 105: //earhWall
+                    continue;
+                case 106: //brokenearthWall
+                    continue;
+                case 107: //erosionGully
+                    continue;
+                case 108: //smallErosionGully;
+                    continue;
+                case 109: //smalKnoll
+                    ptft.coords = symbol.coords[0];
+                    ptft.elevChange = 2f/terrainMaxHeight;
+                    pointFeatures.Add(ptft);
+                    continue;
+                case 110: //elongatedKnoll
+                    ptft.coords = symbol.coords[0];
+                    ptft.elevChange = 2f/terrainMaxHeight;
+                    pointFeatures.Add(ptft);
+                    continue;
+                case 111: //smallDepression
+                    ptft.coords = symbol.coords[0];
+                    ptft.elevChange = -1.5f/terrainMaxHeight;
+                    pointFeatures.Add(ptft);
+                    continue;
+                case 112: //pit
+                    ptft.coords = symbol.coords[0];
+                    ptft.elevChange = -3f/terrainMaxHeight;
+                    pointFeatures.Add(ptft);
+                    continue;
+                case 113: //brokenGround
+                    continue;
+                case 114: //veryBrokenGround
+                    continue;
+                case 115: //prominent land feature
+                    ptft.coords = symbol.coords[0];
+                    ptft.elevChange = 0f;
+                    pointFeatures.Add(ptft);
+                    continue;
+                default:
+                    continue; 
+            }
+        }
+        changeHeightOfPoint(pointFeatures,heights,res);
+        data.SetHeights(0,0,heights);
+    }
+    void changeHeightOfPoint(List<pointLfFeature> feat, float[,] heights, int res){
+        float radius = 3f;
+        for(int y = 0; y < res; y++){
+            for(int x = 0; x < res; x++){
+                Vector2 worldPos = new Vector2(
+                    minX + (float)x / (res-1)*(maxX-minX),
+                    minY + (float)y / (res-1)*(maxY-minY)
+                );
+                foreach(var ft in feat){
+                    float dist = Vector2.Distance(worldPos, ft.coords);
+                    if(dist < radius){
+                        float factor = 1f-(dist/radius);
+                        factor = Mathf.SmoothStep(0,1,factor);
+                        heights[y,x] += ft.elevChange*factor;
+                        heights[y,x] = Mathf.Max(0,heights[y,x]);
+                    }
+                }
+            }
+        }
+    }
     // ISOM 2017 symbol set (for now)
     List<MapSymbol> parseOMAP()
     {
@@ -1636,6 +1711,7 @@ public class convertMap : MonoBehaviour
         }
         generateMapBounds();
         generateHeightMap();
+        processLandformFeatures();
         setupTerrainLayers();
         paintTerrain();
         setupGrassSystem();
