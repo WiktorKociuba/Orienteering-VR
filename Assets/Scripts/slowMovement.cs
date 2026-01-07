@@ -16,6 +16,7 @@ public class slowMovement : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        print("here");
         if (other.gameObject.CompareTag("Player"))
         {
             if(Player1.activeSelf)
@@ -46,22 +47,23 @@ public class slowMovement : MonoBehaviour
                     movePlayerPC1.maxSpeed = newSpeed + 2;
                 }
             }
-            if(Player2.activeSelf)
-            {
-                if (movePlayer2.slowZone == slowZone)
+            if(Player2 != null){
+                if(Player2.activeSelf)
                 {
-                    movePlayer2.maxSpeed = movePlayer2.maxSpeedConst;
-                    movePlayer2.slowZone = 0;
-                    movePlayer1.boost = movePlayer1.boostConst;
-                }
-                else
-                {
-                    movePlayer2.slowZone = slowZone;
-                    movePlayer2.maxSpeed = newSpeed;
-                    movePlayer1.boost = movePlayer1.boostConst + 3 + slowZone;
-                }
-            }
-            if(PlayerPC2.activeSelf)
+                    if (movePlayer2.slowZone == slowZone)
+                    {
+                        movePlayer2.maxSpeed = movePlayer2.maxSpeedConst;
+                        movePlayer2.slowZone = 0;
+                        movePlayer1.boost = movePlayer1.boostConst;
+                    }
+                    else
+                    {
+                        movePlayer2.slowZone = slowZone;
+                        movePlayer2.maxSpeed = newSpeed;
+                        movePlayer1.boost = movePlayer1.boostConst + 3 + slowZone;
+                    }
+                }}
+            if(PlayerPC2 != null && PlayerPC2.activeSelf)
             {
                 if (movePlayerPC2.slowZone == slowZone)
                 {

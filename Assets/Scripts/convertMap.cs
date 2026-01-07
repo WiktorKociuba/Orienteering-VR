@@ -1541,6 +1541,10 @@ public class convertMap : MonoBehaviour
     public GameObject vegetationSlowSZ;
     public GameObject vegetationWalkSZ;
     public GameObject vegetationFightSZ;
+    public MovePlayer PlayerVR;
+    public MovePlayerPC PlayerPC;
+    public GameObject PlayerVRGO;
+    public GameObject PlayerPCGO;
     GameObject slowZonePar;
     void spawnSlowZones(List<Vector2> coords, int vegeType/*0-Slow;1-Walk;2-Fight*/){
         if(slowZonePar == null){
@@ -1575,6 +1579,29 @@ public class convertMap : MonoBehaviour
             GameObject slowZoneObj = Instantiate(slowZonePrefab, position, rotation, slowZonePar.transform);
             slowZoneObj.name = $"SlowZoneSegment_{i}_vegeType_{vegeType}";
             slowZoneObj.transform.localScale = new Vector3(scaleX, scaleY, scaleZ);
+            slowMovement slowScript = slowZoneObj.AddComponent<slowMovement>();
+            slowScript.movePlayer1 = PlayerVR;
+            slowScript.movePlayerPC1 = PlayerPC;
+            slowScript.Player1 = PlayerVRGO;
+            slowScript.PlayerPC1 = PlayerPCGO;
+            switch(vegeType){
+                case 0: 
+                    slowScript.slowZone = 1;
+                    slowScript.newSpeed = 4;
+                    break;
+                case 1:
+                    slowScript.slowZone = 2;
+                    slowScript.newSpeed = 3;
+                    break;
+                case 2:
+                    slowScript.slowZone = 3;
+                    slowScript.newSpeed = 2;
+                    break;
+                default:
+                    slowScript.slowZone = 1;
+                    slowScript.newSpeed = 4;
+                    break;
+            }
         }
     }
     // ISOM 2017 symbol set (for now)
