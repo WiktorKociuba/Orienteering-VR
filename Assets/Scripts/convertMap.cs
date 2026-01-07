@@ -4,6 +4,7 @@ using System.Xml;
 using Unity.Mathematics;
 using System;
 using Unity.VisualScripting;
+using System.Net;
 
 public class convertMap : MonoBehaviour
 {
@@ -1604,24 +1605,43 @@ public class convertMap : MonoBehaviour
         public Vector2 coords;
         public float elevChange;
     }
+    public class lineLfFeature
+    {
+        public List<Vector2> coords;
+        public float elevChange;
+    }
     void processLandformFeatures(){
         TerrainData data = terrain.terrainData;
         int res = data.heightmapResolution;
         float[,] heights = data.GetHeights(0,0,res,res);
         List<pointLfFeature> pointFeatures = new List<pointLfFeature>();
+        List<lineLfFeature> lineFeatures = new List<lineLfFeature>();
         float terrainMaxHeight = data.size.y;
         foreach(MapSymbol symbol in omap){
             pointLfFeature ptft = new pointLfFeature();
+            lineLfFeature lift = new  lineLfFeature();
             switch(isomSet[int.Parse(symbol.id)].isomId){
-                case 104: //earthBank
+                case 104: //earthBank - already hanled by contours
                     continue;
-                case 105: //earhWall
+                case 1051: //earhtWall
+                    lift.coords = symbol.coords;
+                    lift.elevChange = 1.5f/terrainMaxHeight;
+                    lineFeatures.Add(lift);
                     continue;
                 case 106: //brokenearthWall
+                    lift.coords = symbol.coords;
+                    lift.elevChange = 1.5f/terrainMaxHeight;
+                    lineFeatures.Add(lift);
                     continue;
                 case 107: //erosionGully
+                    lift.coords = symbol.coords;
+                    lift.elevChange = -3f/terrainMaxHeight;
+                    lineFeatures.Add(lift);
                     continue;
                 case 108: //smallErosionGully;
+                    lift.coords = symbol.coords;
+                    lift.elevChange = -1.5f/terrainMaxHeight;
+                    lineFeatures.Add(lift);
                     continue;
                 case 109: //smalKnoll
                     ptft.coords = symbol.coords[0];
@@ -1656,6 +1676,7 @@ public class convertMap : MonoBehaviour
                     continue; 
             }
         }
+        changeHeightOfLine(lineFeatures,heights,res);
         changeHeightOfPoint(pointFeatures,heights,res);
         data.SetHeights(0,0,heights);
     }
@@ -1671,6 +1692,30 @@ public class convertMap : MonoBehaviour
                     float dist = Vector2.Distance(worldPos, ft.coords);
                     if(dist < radius){
                         float factor = 1f-(dist/radius);
+                        factor = Mathf.SmoothStep(0,1,factor);
+                        heights[y,x] += ft.elevChange*factor;
+                        heights[y,x] = Mathf.Max(0,heights[y,x]);
+                    }
+                }
+            }
+        }
+    }
+    void changeHeightOfLine(List<lineLfFeature> feats, float[,] heights, int res){
+        float lineWidth = 2f;
+        for(int y = 0; y < res; y++){
+            for(int x = 0; x < res; x++){
+                Vector2 worldPos = new Vector2(
+                    minX + (float)x / (res-1)*(maxX-minX),
+                    minY + (float)y / (res-1)*(maxY-minY)
+                );
+                foreach(var ft in feats){
+                    float minDist = float.MaxValue;
+                    for(int i = 0; i < ft.coords.Count-1; i++){
+                        float dist = distancePointToSegment(worldPos,ft.coords[i],ft.coords[i+1]);
+                        minDist = Mathf.Min(minDist,dist);
+                    }
+                    if(minDist<lineWidth){
+                        float factor = 1f-(minDist/lineWidth);
                         factor = Mathf.SmoothStep(0,1,factor);
                         heights[y,x] += ft.elevChange*factor;
                         heights[y,x] = Mathf.Max(0,heights[y,x]);
@@ -1728,17 +1773,43 @@ public class convertMap : MonoBehaviour
             if(id == 47){
                 continue;
             }
+            switch(isomSet[int.Parse(symbol.id)].isomId){
+                case 104:
+                    continue;
+                case 105:
+                    continue;
+                case 106:
+                    continue;
+                case 107:
+                    continue;
+                case 108:
+                    continue;
+                case 109:
+                    continue;
+                case 110:
+                    continue;
+                case 111:
+                    continue;
+                case 112:
+                    continue;
+                case 113:
+                    continue;
+                case 114:
+                    continue;
+                case 115:
+                    continue;
+            }
             if (refSym.type == 0)
             {
                 CreatePointObject(refSym, symbol.coords);
             }
             if (refSym.type == 1)
             {
-                CreateLineObject(refSym, symbol.coords);
+                //CreateLineObject(refSym, symbol.coords);
             }
             if (refSym.type == 2)
             {
-                CreateAreaObject(refSym, symbol.coords);
+                //CreateAreaObject(refSym, symbol.coords);
             }
         }
         return omap;
