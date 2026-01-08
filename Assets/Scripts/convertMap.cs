@@ -897,14 +897,17 @@ public class convertMap : MonoBehaviour
     }
     // 1 - slope line outwards, 2 - slope line inwards, 0 - not set
     int slopeDirection(MapSymbol slopeLine, ContourData contour){
+        slopeLine.rotation += Mathf.PI / 2f;
         Vector2 direction = new Vector2(
             Mathf.Cos(slopeLine.rotation),
-            -Mathf.Sin(slopeLine.rotation)
+            Mathf.Sin(slopeLine.rotation)
         );
-        Vector2 offset = direction * 5f;
+        Vector2 offset = direction * 7f;
         Vector2 testPoint = slopeLine.coords[0] + offset;
-        if(isPointInPolygon(testPoint, contour.coords))
-            return 2;
+        print(slopeLine.rotation);
+        if(isPointInPolygon(testPoint, closeOpenContour(contour.coords,contour.isClosed,0)))
+            {print(contour.isClosed);
+            return 2;}
         return 1;
     }
     float distancePointToSegment(Vector2 p, Vector2 a, Vector2 b){
@@ -2002,7 +2005,7 @@ public class convertMap : MonoBehaviour
             }
             if (refSym.type == 1)
             {
-                //CreateLineObject(refSym, symbol.coords);
+                CreateLineObject(refSym, symbol.coords);
             }
             if (refSym.type == 2)
             {
