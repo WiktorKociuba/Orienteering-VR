@@ -1602,6 +1602,7 @@ public class convertMap : MonoBehaviour
     {
         public Vector2 coords;
         public float elevChange;
+        public int id;
     }
     public class lineLfFeature
     {
@@ -1622,6 +1623,7 @@ public class convertMap : MonoBehaviour
         System.Random rand = new System.Random();
         foreach(MapSymbol symbol in omap){
             pointLfFeature ptft = new pointLfFeature();
+            ptft.id = -1;
             lineLfFeature lift = new  lineLfFeature();
             float minXl = float.MaxValue, maxXl = float.MinValue;
             float minYl = float.MaxValue, maxYl = float.MinValue;
@@ -1723,6 +1725,30 @@ public class convertMap : MonoBehaviour
                     ptft.elevChange = 0f;
                     pointFeatures.Add(ptft);
                     continue;
+                case 303: //waterhole
+                    ptft.coords = symbol.coords[0];
+                    ptft.elevChange = -3f/terrainMaxHeight;
+                    ptft.id = 303;
+                    pointFeatures.Add(ptft);
+                    continue;
+                case 311: //well
+                    ptft.coords = symbol.coords[0];
+                    ptft.elevChange = -1.5f/terrainMaxHeight;
+                    ptft.id = 311;
+                    pointFeatures.Add(ptft);
+                    continue;
+                case 312: //spring
+                    ptft.coords = symbol.coords[0];
+                    ptft.elevChange = -1.5f/terrainMaxHeight;
+                    ptft.id = 312;
+                    pointFeatures.Add(ptft);
+                    continue;
+                case 313: //prominentwaterfeature
+                    ptft.coords = symbol.coords[0];
+                    ptft.elevChange = -1.5f/terrainMaxHeight;
+                    ptft.id = 313;
+                    pointFeatures.Add(ptft);
+                    continue;
                 default:
                     continue; 
             }
@@ -1750,6 +1776,11 @@ public class convertMap : MonoBehaviour
                 }
             }
         }
+        foreach(var ft in feat){
+            if(ft.id == 312 || ft.id == 313 || ft.id == 311 || ft.id == 303){
+                generateWaterPlane(ft.coords,radius);
+            }
+        }
     }
     void changeHeightOfLine(List<lineLfFeature> feats, float[,] heights, int res){
         float lineWidth = 2f;
@@ -1774,6 +1805,35 @@ public class convertMap : MonoBehaviour
                 }
             }
         }
+    }
+    /*
+        Generate water
+    */
+    public GameObject waterPlane;
+    GameObject waterParent;
+    void generateWaterPlane(Vector2 coords, float radius){
+        if(waterParent == null){
+            waterParent = new GameObject("Water Parent");
+        }
+        TerrainData data = terrain.terrainData;
+        MeshFilter meshFilter = waterPlane.GetComponent<MeshFilter>();
+        if(meshFilter == null || meshFilter.sharedMesh == null){
+            Debug.LogWarning("Check water prefab");
+            return;
+        }
+        float minX = coords.x-radius, maxX = coords.x+radius;
+        float minY = coords.y-radius, maxY = coords.y-radius;
+        Bounds bounds = meshFilter.sharedMesh.bounds;
+        float baseLength = bounds.size.z;
+        float baseWidth = bounds.size.x;
+        float scaleX = radius*2/baseWidth;
+        float scaleY = 1f;
+        float scaleZ = radius*2/baseLength;
+        float height = Mathf.Min(terrain.SampleHeight(new Vector3(minX, 0, minY)), terrain.SampleHeight(new Vector3(minX, 0, maxY)), terrain.SampleHeight(new Vector3(maxX, 0, minY)), terrain.SampleHeight(new Vector3(maxX, 0, maxY)));
+        Vector3 pos = new Vector3(coords.x, height, coords.y);
+        GameObject waterObj = Instantiate(waterPlane, pos, Quaternion.Euler(0,0,0), waterParent.transform);
+        waterObj.transform.localScale = new Vector3(scaleX,scaleY,scaleZ);
+        waterObj.name = "Water Plane";
     }
     // ISOM 2017 symbol set (for now)
     List<MapSymbol> parseOMAP()
