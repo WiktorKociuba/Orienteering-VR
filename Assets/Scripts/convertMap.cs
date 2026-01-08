@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Xml;
 using Unity.Mathematics;
 using System;
+using UnityEngine.Rendering.Universal;
 
 public class convertMap : MonoBehaviour
 {
@@ -1608,6 +1609,7 @@ public class convertMap : MonoBehaviour
     {
         public List<Vector2> coords;
         public float elevChange;
+        public int id;
     }
     void processLandformFeatures(){
         TerrainData data = terrain.terrainData;
@@ -1625,6 +1627,7 @@ public class convertMap : MonoBehaviour
             pointLfFeature ptft = new pointLfFeature();
             ptft.id = -1;
             lineLfFeature lift = new  lineLfFeature();
+            lift.id = -1;
             float minXl = float.MaxValue, maxXl = float.MinValue;
             float minYl = float.MaxValue, maxYl = float.MinValue;
             switch(isomSet[int.Parse(symbol.id)].isomId){
@@ -1749,6 +1752,24 @@ public class convertMap : MonoBehaviour
                     ptft.id = 313;
                     pointFeatures.Add(ptft);
                     continue;
+                case 304:
+                    lift.coords = symbol.coords;
+                    lift.elevChange = -0.5f/terrainMaxHeight;
+                    lift.id = 304;
+                    lineFeatures.Add(lift);
+                    continue;
+                case 305:
+                    lift.coords = symbol.coords;
+                    lift.elevChange = -1f/terrainMaxHeight;
+                    lift.id = 305;
+                    lineFeatures.Add(lift);
+                    continue;
+                case 306:
+                    lift.coords = symbol.coords;
+                    lift.elevChange = -2f/terrainMaxHeight;
+                    lift.id = 306;
+                    lineFeatures.Add(lift);
+                    continue;
                 default:
                     continue; 
             }
@@ -1791,6 +1812,15 @@ public class convertMap : MonoBehaviour
                     minY + (float)y / (res-1)*(maxY-minY)
                 );
                 foreach(var ft in feats){
+                    if(ft.id == 306){
+                        lineWidth = 1f;
+                    }
+                    else if(ft.id == 304){
+                        lineWidth = 3f;
+                    }
+                    else{
+                        lineWidth = 2f;
+                    }
                     float minDist = float.MaxValue;
                     for(int i = 0; i < ft.coords.Count-1; i++){
                         float dist = distancePointToSegment(worldPos,ft.coords[i],ft.coords[i+1]);
@@ -1805,6 +1835,21 @@ public class convertMap : MonoBehaviour
                 }
             }
         }
+        foreach(var ft in feats){
+            if(ft.id == 306){
+                lineWidth = 1f;
+            }
+            else if(ft.id == 304){
+                lineWidth = 3f;
+            }
+            else{
+                lineWidth = 2f;
+            }
+            if(ft.id == 305 || ft.id == 306 || ft.id == 304)
+            {
+                generateWaterLine(ft.coords,lineWidth);
+            }
+        }
     }
     /*
         Generate water
@@ -1815,7 +1860,6 @@ public class convertMap : MonoBehaviour
         if(waterParent == null){
             waterParent = new GameObject("Water Parent");
         }
-        TerrainData data = terrain.terrainData;
         MeshFilter meshFilter = waterPlane.GetComponent<MeshFilter>();
         if(meshFilter == null || meshFilter.sharedMesh == null){
             Debug.LogWarning("Check water prefab");
@@ -1834,6 +1878,48 @@ public class convertMap : MonoBehaviour
         GameObject waterObj = Instantiate(waterPlane, pos, Quaternion.Euler(0,0,0), waterParent.transform);
         waterObj.transform.localScale = new Vector3(scaleX,scaleY,scaleZ);
         waterObj.name = "Water Plane";
+    }
+    void generateWaterLine(List<Vector2> coords, float width){
+        if(waterParent == null){
+            waterParent = new GameObject("Water Parent");
+        }
+        MeshFilter meshFilter = waterPlane.GetComponent<MeshFilter>();
+        if(meshFilter == null || meshFilter.sharedMesh == null){
+            Debug.LogWarning("Check water prefab");
+        }
+        Bounds bounds = meshFilter.sharedMesh.bounds;
+        float baseWidth = bounds.size.x;
+        float baseLength = bounds.size.z;
+        for(int i = 0; i < coords.Count-1; i++){
+            Vector2 start = coords[i];
+            Vector2 end = coords[i+1];
+            float segmentLength = Vector2.Distance(start,end);
+            float segmentWidth = width*2.5f;
+            float objectLength = 2f;
+            Vector2 direction = (end-start).normalized;
+            float angle = Mathf.Atan2(direction.y,direction.x)*Mathf.Rad2Deg;
+            int objectCount = Mathf.CeilToInt(segmentLength/objectLength)+1;
+            for(int j = 0; j < objectCount; j++){
+                Vector2 pos2D = start+direction*j*objectLength;
+                float terrainHeight = terrain.SampleHeight(new Vector3(pos2D.x,0,pos2D.y));
+                Vector3 position = new Vector3(pos2D.x, terrainHeight,pos2D.y);
+                Vector3 normal = getTerrainNormal(position);
+                Quaternion rotation = Quaternion.FromToRotation(Vector3.up, normal);
+                GameObject obj = Instantiate(waterPlane, position, rotation, waterParent.transform);
+                obj.transform.localScale = new Vector3(segmentWidth/baseWidth,0.5f,objectLength/baseLength);
+                obj.name = "Water Line";
+            }
+        }
+    }
+    Vector3 getTerrainNormal(Vector3 pos){
+        TerrainData data = terrain.terrainData;
+        Vector3 terrainPos = pos-terrain.transform.position;
+        Vector3 normalizedPos = new Vector3(
+            terrainPos.x/data.size.x,
+            terrainPos.y/data.size.y,
+            terrainPos.z/data.size.z
+        );
+        return data.GetInterpolatedNormal(normalizedPos.x,normalizedPos.z);
     }
     // ISOM 2017 symbol set (for now)
     List<MapSymbol> parseOMAP()
