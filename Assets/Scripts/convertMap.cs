@@ -3,7 +3,6 @@ using UnityEngine;
 using System.Xml;
 using Unity.Mathematics;
 using System;
-using UnityEngine.Rendering.Universal;
 
 public class convertMap : MonoBehaviour
 {
@@ -1886,33 +1885,56 @@ public class convertMap : MonoBehaviour
         if(waterParent == null){
             waterParent = new GameObject("Water Parent");
         }
-        MeshFilter meshFilter = waterPlane.GetComponent<MeshFilter>();
-        if(meshFilter == null || meshFilter.sharedMesh == null){
-            Debug.LogWarning("Check water prefab");
+        GameObject obj = new GameObject("Water Line Feature");
+        obj.transform.parent = waterParent.transform;
+        MeshFilter meshFilter = obj.AddComponent<MeshFilter>();
+        MeshRenderer meshRenderer = obj.AddComponent<MeshRenderer>();
+        if(waterPlane.GetComponent<MeshRenderer>()!=null){
+            meshRenderer.sharedMaterial = waterPlane.GetComponent<MeshRenderer>().sharedMaterial;
         }
-        Bounds bounds = meshFilter.sharedMesh.bounds;
-        float baseWidth = bounds.size.x;
-        float baseLength = bounds.size.z;
+        Mesh mesh = createLineMesh(coords,width);
+        meshFilter.mesh = mesh;
+    }
+    Mesh createLineMesh(List<Vector2> coords, float width){
+        List<Vector3> vertices = new List<Vector3>();
+        List<int> triangles = new List<int>();
+        List<Vector2> uvs = new List<Vector2>();
         for(int i = 0; i < coords.Count-1; i++){
             Vector2 start = coords[i];
             Vector2 end = coords[i+1];
-            float segmentLength = Vector2.Distance(start,end);
-            float segmentWidth = width*2.5f;
-            float objectLength = 2f;
             Vector2 direction = (end-start).normalized;
-            float angle = Mathf.Atan2(direction.y,direction.x)*Mathf.Rad2Deg;
-            int objectCount = Mathf.CeilToInt(segmentLength/objectLength)+1;
-            for(int j = 0; j < objectCount; j++){
-                Vector2 pos2D = start+direction*j*objectLength;
-                float terrainHeight = terrain.SampleHeight(new Vector3(pos2D.x,0,pos2D.y));
-                Vector3 position = new Vector3(pos2D.x, terrainHeight,pos2D.y);
-                Vector3 normal = getTerrainNormal(position);
-                Quaternion rotation = Quaternion.FromToRotation(Vector3.up, normal);
-                GameObject obj = Instantiate(waterPlane, position, rotation, waterParent.transform);
-                obj.transform.localScale = new Vector3(segmentWidth/baseWidth,0.5f,objectLength/baseLength);
-                obj.name = "Water Line";
-            }
+            Vector2 perpendicular = new Vector2(-direction.y, direction.x);
+            Vector2 v0 = start+perpendicular*width*0.5f;
+            Vector2 v1 = start-perpendicular*width*0.5f;
+            Vector2 v2 = end+perpendicular*width*0.5f;
+            Vector2 v3 = end-perpendicular*width*0.5f;
+            int baseIndex = vertices.Count;
+            vertices.Add(new Vector3(v0.x, terrain.SampleHeight(new Vector3(v0.x,0,v0.y))-0.2f,v0.y));
+            vertices.Add(new Vector3(v1.x, terrain.SampleHeight(new Vector3(v1.x,0,v1.y))-0.2f,v1.y));
+            vertices.Add(new Vector3(v2.x, terrain.SampleHeight(new Vector3(v2.x,0,v2.y))-0.2f,v2.y));
+            vertices.Add(new Vector3(v3.x, terrain.SampleHeight(new Vector3(v3.x,0,v3.y))-0.2f,v3.y));
+            float segmentUV = (float)i/(coords.Count-1);
+            uvs.Add(new Vector2(segmentUV,0));
+            uvs.Add(new Vector2(segmentUV,1));
+            uvs.Add(new Vector2(segmentUV+1f/(coords.Count-1),0));
+            uvs.Add(new Vector2(segmentUV+1f/(coords.Count-1),1));
+            triangles.Add(baseIndex);
+            triangles.Add(baseIndex+2);
+            triangles.Add(baseIndex+1);
+            triangles.Add(baseIndex+1);
+            triangles.Add(baseIndex+2);
+            triangles.Add(baseIndex+3);
         }
+        Mesh mesh = new Mesh();
+        mesh.vertices = vertices.ToArray();
+        mesh.triangles = triangles.ToArray();
+        mesh.uv = uvs.ToArray();
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+        return mesh;
+    }
+    void generateWaterArea(List<Vector2> coods){
+        
     }
     Vector3 getTerrainNormal(Vector3 pos){
         TerrainData data = terrain.terrainData;
@@ -1997,6 +2019,22 @@ public class convertMap : MonoBehaviour
                 case 114:
                     continue;
                 case 115:
+                    continue;
+                case 1051:
+                    continue;
+                case 303:
+                    continue;
+                case 311:
+                    continue;
+                case 312:
+                    continue;
+                case 313:
+                    continue;
+                case 304:
+                    continue;
+                case 305:
+                    continue;
+                case 306:
                     continue;
             }
             if (refSym.type == 0)
@@ -2210,6 +2248,6 @@ public class convertMap : MonoBehaviour
     }
     void Update()
     {
-
+        
     }
 }
