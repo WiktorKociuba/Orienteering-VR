@@ -1613,12 +1613,19 @@ public class convertMap : MonoBehaviour
         public float elevChange;
         public int id;
     }
+    public class areaLfFeature
+    {
+        public List<Vector2> coords;
+        public float elevChange;
+        public int id;
+    }
     void processLandformFeatures(){
         TerrainData data = terrain.terrainData;
         int res = data.heightmapResolution;
         float[,] heights = data.GetHeights(0,0,res,res);
         List<pointLfFeature> pointFeatures = new List<pointLfFeature>();
         List<lineLfFeature> lineFeatures = new List<lineLfFeature>();
+        List<areaLfFeature> areaFeatures = new List<areaLfFeature>();
         float terrainMaxHeight = data.size.y;
         float widthl;
         float heightl;
@@ -1630,6 +1637,8 @@ public class convertMap : MonoBehaviour
             ptft.id = -1;
             lineLfFeature lift = new  lineLfFeature();
             lift.id = -1;
+            areaLfFeature alft = new areaLfFeature();
+            alft.id = -1;
             float minXl = float.MaxValue, maxXl = float.MinValue;
             float minYl = float.MaxValue, maxYl = float.MinValue;
             switch(isomSet[int.Parse(symbol.id)].isomId){
@@ -1773,12 +1782,16 @@ public class convertMap : MonoBehaviour
                     lineFeatures.Add(lift);
                     continue;
                 case 301:
+                    alft.coords = symbol.coords;
+                    alft.elevChange = -1f/terrainMaxHeight;
+                    areaFeatures.Add(alft);
                     generateWaterArea(symbol.coords);
                     continue;
                 default:
                     continue; 
             }
         }
+        changeHeightOfArea(areaFeatures,heights,res);
         changeHeightOfLine(lineFeatures,heights,res);
         changeHeightOfPoint(pointFeatures,heights,res);
         data.SetHeights(0,0,heights);
@@ -1853,6 +1866,35 @@ public class convertMap : MonoBehaviour
             if(ft.id == 305 || ft.id == 306 || ft.id == 304)
             {
                 generateWaterLine(ft.coords,lineWidth);
+            }
+        }
+    }
+    void changeHeightOfArea(List<areaLfFeature> feats, float[,] heights, int res){
+        float slopeTolerance = 0f;
+        for(int y = 0; y < res; y++){
+            for(int x = 0; x < res; x++){
+                Vector2 worldPos = new Vector2(
+                    minX + (float)x/(res-1)*(maxX-minX),
+                    minY + (float)y/(res-1)*(maxY-minY)
+                );
+                foreach(var ft in feats){
+                    if(isPointInPolygon(worldPos, ft.coords)){
+                        heights[y,x]+=ft.elevChange;
+                        heights[y,x]=Mathf.Max(heights[y,x],0);
+                        continue;
+                    }
+                    float minDist = float.MaxValue;
+                    for(int i = 0; i < ft.coords.Count; i++){
+                        float dist = distancePointToSegment(worldPos, ft.coords[i],ft.coords[(i+1)%ft.coords.Count]);
+                        minDist = Mathf.Min(minDist, dist);
+                    }
+                    if(minDist < slopeTolerance){
+                        float factor = 1f-(minDist/slopeTolerance);
+                        factor = Mathf.SmoothStep(0,1,factor);
+                        heights[y,x]+=ft.elevChange*factor;
+                        heights[y,x]=Mathf.Max(0,heights[y,x]);
+                    }
+                }
             }
         }
     }
@@ -1943,7 +1985,7 @@ void generateWaterLine(List<Vector2> coords, float width){
         float scaleY = 1f;
         float scaleZ = Mathf.Abs(maxY-minY)/baseLength;
         Vector3 center = new Vector3((maxX+minX)/2f,0,(maxY+minY)/2f);
-        center.y = avHeight-0.1f;
+        center.y = avHeight;
         GameObject obj = Instantiate(waterPlane, center, Quaternion.Euler(0,0,0), waterParent.transform);
         obj.transform.localScale = new Vector3(scaleX,scaleY,scaleZ);
         obj.name = "Water Area";
