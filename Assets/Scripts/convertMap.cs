@@ -1882,24 +1882,40 @@ public class convertMap : MonoBehaviour
         waterObj.name = "Water Plane";
     }
     
-    void generateWaterLine(List<Vector2> coords, float width){
-        if(waterParent == null){
-            waterParent = new GameObject("Water Parent");
-        }
-        GameObject obj = new GameObject("Water Line Feature");
-        obj.transform.parent = waterParent.transform;
-        MeshFilter meshFilter = obj.AddComponent<MeshFilter>();
-        MeshRenderer meshRenderer = obj.AddComponent<MeshRenderer>();
-        if(waterPlane.GetComponent<MeshRenderer>()!=null){
-            meshRenderer.material = new Material(waterPlane.GetComponent<MeshRenderer>().sharedMaterial);
-            meshRenderer.material.SetInt("_Cull",0);
-            meshRenderer.receiveShadows = false;
-            meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
-        }
-        Mesh mesh = createLineMesh(coords,width);
-        meshFilter.mesh = mesh;
-        obj.transform.position = new Vector3(obj.transform.position.x, terrain.SampleHeight(new Vector3(obj.transform.position.x,0,obj.transform.position.z)), obj.transform.position.z);
+void generateWaterLine(List<Vector2> coords, float width){
+    if(waterParent == null){
+        waterParent = new GameObject("Water Parent");
     }
+    MeshFilter meshFilter = waterPlane.GetComponent<MeshFilter>();
+    if(meshFilter == null || meshFilter.sharedMesh == null){
+        Debug.LogWarning("Check water prefab");
+    }
+    Bounds bounds = meshFilter.sharedMesh.bounds;
+    float baseWidth = bounds.size.x;
+    float baseLength = bounds.size.z;
+    for(int i = 0; i < coords.Count-1; i++){
+        Vector2 start = coords[i];
+        Vector2 end = coords[i+1];
+        float segmentLength = Vector2.Distance(start,end);
+        float segmentWidth = width*2.5f;
+        float objectLength = 2f;
+        Vector2 direction = (end-start).normalized;
+        float angle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
+        int objectCount = Mathf.CeilToInt(segmentLength/objectLength)+1;
+        for(int j = 0; j < objectCount; j++){
+            Vector2 pos2D = start+direction*j*objectLength;
+            float terrainHeight = terrain.SampleHeight(new Vector3(pos2D.x,0,pos2D.y));
+            Vector3 position = new Vector3(pos2D.x, terrainHeight,pos2D.y);
+            Vector3 normal = getTerrainNormal(position);
+            Quaternion yRotation = Quaternion.Euler(0, angle, 0);
+            Quaternion normalRotation = Quaternion.FromToRotation(Vector3.up, normal);
+            Quaternion rotation = normalRotation * yRotation;
+            GameObject obj = Instantiate(waterPlane, position, rotation, waterParent.transform);
+            obj.transform.localScale = new Vector3(segmentWidth/baseWidth,0.5f,(objectLength+0.1f)/baseLength);
+            obj.name = "Water Line";
+        }
+    }
+}
     Mesh createLineMesh(List<Vector2> coords, float width){
         List<Vector3> vertices = new List<Vector3>();
         List<int> triangles = new List<int>();
@@ -1938,18 +1954,18 @@ public class convertMap : MonoBehaviour
         mesh.RecalculateBounds();
         return mesh;
     }
-    Mesh createLineMeshNew(List<Vector2> coords, float width){
+    /*Mesh createLineMeshNew(List<Vector2> coords, float width, Vector2 centerOffset){
+        width*=2;
         List<Vector3> vertices = new List<Vector3>();
         List<int> triangles = new List<int>();
         List<Vector2> uvs = new List<Vector2>();
-        float tessellationStep = 0.5f;
-        int widthSubdivisions = 6;
+        int widthSubdivisions = 20;
         for(int i = 0; i < coords.Count-1; i++){
             Vector2 start = coords[i];
             Vector2 end = coords[i+1];
             Vector2 direction = (end-start).normalized;
             Vector2 perpendicular = new Vector2(-direction.y, direction.x);
-            float segmentLength = Vector2.Distance(start,end);
+            float segmentLength = Vector2.Distance(start,end)+1f;
             int subdivisions = Mathf.Max(Mathf.CeilToInt(segmentLength/tessellationStep),1);
             for(int j = 0; j <= subdivisions; j++){
                 float t = (float)j/subdivisions;
@@ -1957,8 +1973,8 @@ public class convertMap : MonoBehaviour
                 for(int w = 0; w <= widthSubdivisions; w++){
                     float widthT = (float)w/widthSubdivisions-0.5f;
                     Vector2 v0 = centerPoint+perpendicular*width*widthT;
-                    vertices.Add(new Vector3(v0.x, terrain.SampleHeight(new Vector3(v0.x,0,v0.y)),v0.y));
-                    uvs.Add(new Vector2(v0.x*0.1f,v0.y*0.1f));
+                    vertices.Add(new Vector3(v0.x-centerOffset.x, -0.3f+terrain.SampleHeight(new Vector3(v0.x,0,v0.y))-terrain.SampleHeight(new Vector3(centerOffset.x,0,centerOffset.y)),v0.y-centerOffset.y));
+                    uvs.Add(new Vector2((float)i/(coords.Count-1)+t/(coords.Count-1),(float)w/widthSubdivisions));
                 }
                 if(j > 0){
                     int currentStart = vertices.Count - (widthSubdivisions+1);
@@ -1968,12 +1984,6 @@ public class convertMap : MonoBehaviour
                         int v1 = previousStart+w+1;
                         int v2 = currentStart+w;
                         int v3 = currentStart +w+1;
-                        triangles.Add(v0);
-                        triangles.Add(v2);
-                        triangles.Add(v1);
-                        triangles.Add(v1);
-                        triangles.Add(v2);
-                        triangles.Add(v3);
                         triangles.Add(v1);
                         triangles.Add(v2);
                         triangles.Add(v0);
@@ -1991,7 +2001,7 @@ public class convertMap : MonoBehaviour
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
         return mesh;
-    }
+    }*/
     void generateWaterArea(List<Vector2> coods){
         
     }
