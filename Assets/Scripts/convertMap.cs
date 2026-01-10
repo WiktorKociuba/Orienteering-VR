@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Xml;
 using Unity.Mathematics;
 using System;
+using System.IO;
 
 public class convertMap : MonoBehaviour
 {
@@ -159,6 +160,8 @@ public class convertMap : MonoBehaviour
     public TerrainLayer sandLayer;
     public TerrainLayer rockLayer;
     public TerrainLayer waterLayer;
+    public TerrainLayer pathLayer;
+    public TerrainLayer asphaltLayer;
     public string filePath;
     public class MapSymbol
     {
@@ -1190,6 +1193,10 @@ public class convertMap : MonoBehaviour
             layers.Add(sandLayer);
         if(rockLayer != null)
             layers.Add(rockLayer);
+        if(pathLayer != null)
+            layers.Add(pathLayer);
+        if(asphaltLayer != null)
+            layers.Add(asphaltLayer);
         data.terrainLayers = layers.ToArray();
     }
     int getTerrainLayerIndex(int id){
@@ -1201,6 +1208,12 @@ public class convertMap : MonoBehaviour
         }
         if(id == 47){
             return 2;
+        }
+        if(id >= 110 && id <= 119){
+            return 3;
+        }
+        if(id >= 105 && id <= 109 && id !=107){
+            return 4;
         }
         return -1;
     }
@@ -1232,14 +1245,15 @@ public class convertMap : MonoBehaviour
                 alphamap[y,x,0] = 1f;
             }
         }
+        List<PathData> paths = new List<PathData>();
         foreach(MapSymbol symbol in omap){
             isomSymbol refSym = isomSet[int.Parse(symbol.id)];
+            int layerIndex = getTerrainLayerIndex(int.Parse(symbol.id));
+            int id = int.Parse(symbol.id);
             if(refSym.type == 2){
-                int layerIndex = getTerrainLayerIndex(int.Parse(symbol.id));
                 if(layerIndex >= 0){
                     paintArea(alphamap, symbol.coords, layerIndex, alphamapWidth, alphamapHeight);
                 }
-                int id = int.Parse(symbol.id);
                 if(id == 80){// white forest
                     generateTreePosition(symbol.coords,1, 2);
                 }
@@ -1257,8 +1271,109 @@ public class convertMap : MonoBehaviour
                     generateTreePosition(symbol.coords,6,0);
                     spawnSlowZones(symbol.coords,2);
                 }
+            } 
+            if(id >= 115 && id <= 119){
+                PathData path = new PathData();
+                path.coords = symbol.coords;
+                path.width = 0.4f;
+                path.indexLayer = layerIndex;
+                paths.Add(path);
             }
+            else if(id == 114){
+                PathData path = new PathData();
+                path.coords = symbol.coords;
+                path.width = 0.6f;
+                path.indexLayer = layerIndex;
+                paths.Add(path);
+            }
+            else if(id == 113){
+                PathData path = new PathData();
+                path.coords = symbol.coords;
+                path.width = 0.7f;
+                path.indexLayer = layerIndex;
+                paths.Add(path);
+            }
+            else if(id == 112){
+                PathData path = new PathData();
+                path.coords = symbol.coords;
+                path.width = 1.3f;
+                path.indexLayer = layerIndex;
+                paths.Add(path);
+            }
+            else if(id == 111)
+            {
+                PathData path = new PathData();
+                path.coords = symbol.coords;
+                path.width = 2.5f;
+                path.indexLayer = layerIndex;
+                paths.Add(path);
+            }
+            else if(id == 110){
+                PathData path = new PathData();
+                path.coords = symbol.coords;
+                path.width = 4f;
+                path.indexLayer = layerIndex;
+                paths.Add(path);
+            }
+            else if(id == 109){
+                PathData path = new PathData();
+                path.coords = symbol.coords;
+                path.width = 10f;
+                path.indexLayer = layerIndex;
+                paths.Add(path);
+            }
+            else if(id >= 105 && id <= 108 && id != 107){
+                PathData path = new PathData();
+                path.coords = symbol.coords;
+                path.width = 5f;
+                path.indexLayer = layerIndex;
+                paths.Add(path);
+            }
+        paintPath(paths, alphamap, alphamapWidth, alphamapHeight);
         data.SetAlphamaps(0,0,alphamap);
+        }
+    }
+    /*
+        Path painting
+    */
+    public class PathData
+    {
+        public List<Vector2> coords;
+        public float width;
+        public int indexLayer;
+    }
+    void paintPath(List<PathData> paths, float [,,] alphamap, int awidth, int aheight){
+        for(int y = 0; y < aheight; y++){
+            for(int x = 0; x < awidth; x++){
+                Vector2 worldPos = new Vector2(
+                    minX + (float)x / (awidth-1)*(maxX-minX),
+                    minY + (float)y / (aheight-1)*(maxY-minY)
+                );
+                foreach(var path in paths){
+                    for(int i = 0; i < path.coords.Count-1; i++){
+                        Vector2 start = path.coords[i];
+                        Vector2 end = path.coords[i+1];
+                        if(path.width == 0.6f){
+                            System.Random rand = new System.Random();
+                            float rNum = rand.Next(2);
+                            if(rNum == 1){
+                                if(distancePointToSegment(worldPos,start,end) <= path.width){
+                                    for(int j = 0; j < alphamap.GetLength(2); j++){
+                                        alphamap[y,x,j] = 0f;
+                                    }
+                                    alphamap[y,x,path.indexLayer] = 1f;
+                                }
+                            }
+                        }
+                        else if(distancePointToSegment(worldPos,start,end) <= path.width){
+                            for(int j = 0; j < alphamap.GetLength(2); j++){
+                                alphamap[y,x,j] = 0f;
+                            }
+                            alphamap[y,x,path.indexLayer] = 1f;
+                        }
+                    }
+                }
+            }
         }
     }
     /*
