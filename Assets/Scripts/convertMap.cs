@@ -1772,6 +1772,9 @@ public class convertMap : MonoBehaviour
                     lift.id = 306;
                     lineFeatures.Add(lift);
                     continue;
+                case 301:
+                    generateWaterArea(symbol.coords);
+                    continue;
                 default:
                     continue; 
             }
@@ -1916,94 +1919,34 @@ void generateWaterLine(List<Vector2> coords, float width){
         }
     }
 }
-    Mesh createLineMesh(List<Vector2> coords, float width){
-        List<Vector3> vertices = new List<Vector3>();
-        List<int> triangles = new List<int>();
-        List<Vector2> uvs = new List<Vector2>();
-        for(int i = 0; i < coords.Count-1; i++){
-            Vector2 start = coords[i];
-            Vector2 end = coords[i+1];
-            Vector2 direction = (end-start).normalized;
-            Vector2 perpendicular = new Vector2(-direction.y, direction.x);
-            Vector2 v0 = start+perpendicular*width*0.5f;
-            Vector2 v1 = start-perpendicular*width*0.5f;
-            Vector2 v2 = end+perpendicular*width*0.5f;
-            Vector2 v3 = end-perpendicular*width*0.5f;
-            int baseIndex = vertices.Count;
-            vertices.Add(new Vector3(v0.x, terrain.SampleHeight(new Vector3(v0.x,0,v0.y))-0.2f,v0.y));
-            vertices.Add(new Vector3(v1.x, terrain.SampleHeight(new Vector3(v1.x,0,v1.y))-0.2f,v1.y));
-            vertices.Add(new Vector3(v2.x, terrain.SampleHeight(new Vector3(v2.x,0,v2.y))-0.2f,v2.y));
-            vertices.Add(new Vector3(v3.x, terrain.SampleHeight(new Vector3(v3.x,0,v3.y))-0.2f,v3.y));
-            float segmentUV = (float)i/(coords.Count-1);
-            uvs.Add(new Vector2(segmentUV,0));
-            uvs.Add(new Vector2(segmentUV,1));
-            uvs.Add(new Vector2(segmentUV+1f/(coords.Count-1),0));
-            uvs.Add(new Vector2(segmentUV+1f/(coords.Count-1),1));
-            triangles.Add(baseIndex);
-            triangles.Add(baseIndex+2);
-            triangles.Add(baseIndex+1);
-            triangles.Add(baseIndex+1);
-            triangles.Add(baseIndex+2);
-            triangles.Add(baseIndex+3);
+    void generateWaterArea(List<Vector2> coords){
+        float minY = coords[0].y, maxY=coords[0].y, minX=coords[0].x, maxX=coords[0].x, avHeight = float.MaxValue;
+        foreach(var coord in coords){
+            minY = Mathf.Min(minY, coord.y);
+            maxY = Mathf.Max(maxY, coord.y);
+            minX = Mathf.Min(minX, coord.x);
+            maxX = Mathf.Max(maxX, coord.x);
+            avHeight = Mathf.Min(avHeight,terrain.SampleHeight(new Vector3(coord.x,0,coord.y)));
         }
-        Mesh mesh = new Mesh();
-        mesh.vertices = vertices.ToArray();
-        mesh.triangles = triangles.ToArray();
-        mesh.uv = uvs.ToArray();
-        mesh.RecalculateNormals();
-        mesh.RecalculateBounds();
-        return mesh;
-    }
-    /*Mesh createLineMeshNew(List<Vector2> coords, float width, Vector2 centerOffset){
-        width*=2;
-        List<Vector3> vertices = new List<Vector3>();
-        List<int> triangles = new List<int>();
-        List<Vector2> uvs = new List<Vector2>();
-        int widthSubdivisions = 20;
-        for(int i = 0; i < coords.Count-1; i++){
-            Vector2 start = coords[i];
-            Vector2 end = coords[i+1];
-            Vector2 direction = (end-start).normalized;
-            Vector2 perpendicular = new Vector2(-direction.y, direction.x);
-            float segmentLength = Vector2.Distance(start,end)+1f;
-            int subdivisions = Mathf.Max(Mathf.CeilToInt(segmentLength/tessellationStep),1);
-            for(int j = 0; j <= subdivisions; j++){
-                float t = (float)j/subdivisions;
-                Vector2 centerPoint = Vector2.Lerp(start,end,t);
-                for(int w = 0; w <= widthSubdivisions; w++){
-                    float widthT = (float)w/widthSubdivisions-0.5f;
-                    Vector2 v0 = centerPoint+perpendicular*width*widthT;
-                    vertices.Add(new Vector3(v0.x-centerOffset.x, -0.3f+terrain.SampleHeight(new Vector3(v0.x,0,v0.y))-terrain.SampleHeight(new Vector3(centerOffset.x,0,centerOffset.y)),v0.y-centerOffset.y));
-                    uvs.Add(new Vector2((float)i/(coords.Count-1)+t/(coords.Count-1),(float)w/widthSubdivisions));
-                }
-                if(j > 0){
-                    int currentStart = vertices.Count - (widthSubdivisions+1);
-                    int previousStart = currentStart - (widthSubdivisions+1);
-                    for(int w = 0; w < widthSubdivisions; w++){
-                        int v0 = previousStart+w;
-                        int v1 = previousStart+w+1;
-                        int v2 = currentStart+w;
-                        int v3 = currentStart +w+1;
-                        triangles.Add(v1);
-                        triangles.Add(v2);
-                        triangles.Add(v0);
-                        triangles.Add(v3);
-                        triangles.Add(v2);
-                        triangles.Add(v1);
-                    }
-                }
-            }
+        if(waterParent == null){
+            waterParent = new GameObject("Water Parent");
         }
-        Mesh mesh = new Mesh();
-        mesh.vertices = vertices.ToArray();
-        mesh.triangles = triangles.ToArray();
-        mesh.uv = uvs.ToArray();
-        mesh.RecalculateNormals();
-        mesh.RecalculateBounds();
-        return mesh;
-    }*/
-    void generateWaterArea(List<Vector2> coods){
-        
+        MeshFilter meshFilter = waterPlane.GetComponent<MeshFilter>();
+        if(meshFilter == null || meshFilter.sharedMesh == null){
+            Debug.LogWarning("Check water prefab");
+            return;
+        }
+        Bounds bounds = meshFilter.sharedMesh.bounds;
+        float baseLength = bounds.size.z;
+        float baseWidth = bounds.size.x;
+        float scaleX = Mathf.Abs(maxX-minX)/baseWidth;
+        float scaleY = 1f;
+        float scaleZ = Mathf.Abs(maxY-minY)/baseLength;
+        Vector3 center = new Vector3((maxX+minX)/2f,0,(maxY+minY)/2f);
+        center.y = avHeight-0.1f;
+        GameObject obj = Instantiate(waterPlane, center, Quaternion.Euler(0,0,0), waterParent.transform);
+        obj.transform.localScale = new Vector3(scaleX,scaleY,scaleZ);
+        obj.name = "Water Area";
     }
     Vector3 getTerrainNormal(Vector3 pos){
         TerrainData data = terrain.terrainData;
