@@ -4,6 +4,8 @@ using System.Xml;
 using Unity.Mathematics;
 using System;
 using System.IO;
+using UnityEngine.UI;
+using System.Collections;
 
 public class convertMap : MonoBehaviour
 {
@@ -681,7 +683,7 @@ public class convertMap : MonoBehaviour
         temp = new isomSymbol();
         temp.id = 167; temp.isomId = 799; temp.type = 0; temp.symbolObject = null;
         isomSet[167] = temp;
-        parseOMAP();
+        StartCoroutine(generateTerrain());
     }
     void getMapSize(){
         foreach(MapSymbol symbol in omap){
@@ -2116,10 +2118,12 @@ void generateWaterLine(List<Vector2> coords, float width){
         return data.GetInterpolatedNormal(normalizedPos.x,normalizedPos.z);
     }
     // ISOM 2017 symbol set (for now)
-    List<MapSymbol> parseOMAP()
+    IEnumerator parseOMAP()
     {
         omap = new List<MapSymbol>();
         XmlDocument mapFile = new XmlDocument();
+        if(loadingBar != null)
+            loadingBar.fillAmount = 0.05f;
         try
         {
             mapFile.Load(filePath);
@@ -2131,7 +2135,7 @@ void generateWaterLine(List<Vector2> coords, float width){
         }
         XmlNamespaceManager nsmgr = new XmlNamespaceManager(mapFile.NameTable);
         nsmgr.AddNamespace("omap", "http://openorienteering.org/apps/mapper/xml/v2");
-
+        yield return null;
         XmlNodeList contentPart = mapFile.SelectNodes("//omap:parts/omap:part", nsmgr);
         foreach (XmlNode contentObject in contentPart)
         {
@@ -2145,12 +2149,34 @@ void generateWaterLine(List<Vector2> coords, float width){
                 }
             }
         }
+        yield return null;
+        if(loadingBar != null)
+            loadingBar.fillAmount = 0.1f;
         generateMapBounds();
+        yield return null;
+        if(loadingBar != null)
+            loadingBar.fillAmount = 0.2f;
         generateHeightMap();
+        yield return null;
+        if(loadingBar != null)
+            loadingBar.fillAmount = 0.4f;
         processLandformFeatures();
+        yield return null;
+        if(loadingBar != null)
+            loadingBar.fillAmount = 0.5f;
         setupTerrainLayers();
+        yield return null;
+        if(loadingBar != null)
+            loadingBar.fillAmount = 0.6f;
         paintTerrain();
+        yield return null;
+        if(loadingBar != null)
+            loadingBar.fillAmount = 0.7f;
         setupGrassSystem();
+        yield return null;
+        if(loadingBar != null)
+            loadingBar.fillAmount = 0.9f;
+        int objcount = 0;
         foreach(MapSymbol symbol in omap)
         {
             isomSymbol refSym = isomSet[int.Parse(symbol.id)];
@@ -2164,6 +2190,9 @@ void generateWaterLine(List<Vector2> coords, float width){
             if(id == 47){
                 continue;
             }
+            objcount++;
+            if(objcount %50 == 0)
+                yield return null;
             switch(isomSet[int.Parse(symbol.id)].isomId){
                 case 104:
                     continue;
@@ -2212,6 +2241,7 @@ void generateWaterLine(List<Vector2> coords, float width){
             }
             if (refSym.type == 1)
             {
+                if (refSym.symbolObject == null) continue;
                 CreateLineObject(refSym, symbol.coords);
             }
             if (refSym.type == 2)
@@ -2219,7 +2249,10 @@ void generateWaterLine(List<Vector2> coords, float width){
                 //CreateAreaObject(refSym, symbol.coords);
             }
         }
-        return omap;
+        yield return null;
+        if(loadingBar != null)
+            loadingBar.fillAmount = 1f;
+        yield return new WaitForSeconds(0.5f);
     }
     void CreatePointObject(isomSymbol symbol, List<Vector2> coords)
     {
@@ -2414,6 +2447,21 @@ void generateWaterLine(List<Vector2> coords, float width){
             }
         }
         return symbol;
+    }
+    /*
+        Scene loading
+    */
+    public GameObject loadingScreen;
+    public Image loadingBar;
+    public GameObject player;
+    IEnumerator generateTerrain()
+    {
+        if(loadingScreen != null)
+            loadingScreen.SetActive(true);
+        yield return parseOMAP();
+        if(loadingScreen != null)
+            loadingScreen.SetActive(false);
+        player.SetActive(true);
     }
     void Update()
     {
