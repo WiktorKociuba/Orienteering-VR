@@ -49,9 +49,7 @@ public class clickMenuPC : MonoBehaviour
                 level1.gameObject.SetActive(true);
             }
             else if(btn.name == "map"){
-                Destroy(player);
-                SceneManager.UnloadSceneAsync("mainMenu");
-                SceneManager.LoadScene("demoMap");
+                StartCoroutine(loadSceneAsync("test"));
             }
             else if(btn.name == "exitMenu"){
                 Time.timeScale = 1f;
@@ -77,14 +75,10 @@ public class clickMenuPC : MonoBehaviour
             }
             else if(btn.name == "map1course1")
             {
-                Destroy(player);
-                routeManager.SelectRoute(0);
-                SceneManager.LoadScene("map1");
+                StartCoroutine(loadSceneAsync("map1",0));
             }
             else if(btn.name == "map1course2"){
-                Destroy(player);
-                routeManager.SelectRoute(1);
-                SceneManager.LoadScene("map1");
+                StartCoroutine(loadSceneAsync("map1",1));
             }
             else if(btn.name == "nightModeDisabled")
             {
@@ -150,8 +144,7 @@ public class clickMenuPC : MonoBehaviour
             }
             else if(btn.name == "tutorial")
             {
-                Destroy(player);
-                SceneManager.LoadScene("tutorial");
+                StartCoroutine(loadSceneAsync("tutorial"));
             }
         }
         btn = null;
@@ -172,6 +165,26 @@ public class clickMenuPC : MonoBehaviour
                     clickedButton.onClick.Invoke();
                 }
             }
+        }
+    }
+    public GameObject loadingScreen;
+    public Image loadingBar;
+    public GameObject fadeToBlack;
+    IEnumerator loadSceneAsync(string scene, int route = -1){
+        fadeToBlack.SetActive(true);
+        yield return new WaitForSecondsRealtime(1f);
+        if(loadingScreen != null)
+            loadingScreen.SetActive(true);
+        yield return new WaitForSecondsRealtime(1f);
+        fadeToBlack.SetActive(false);
+        if(route > -1)    
+            routeManager.SelectRoute(route);
+        loadingBar.fillAmount = 0f;
+        AsyncOperation operation = SceneManager.LoadSceneAsync(scene);
+        while(!operation.isDone){
+            float progressVall = Mathf.Clamp01(operation.progress/0.9f);
+            loadingBar.fillAmount = progressVall;
+            yield return null;
         }
     }
 }

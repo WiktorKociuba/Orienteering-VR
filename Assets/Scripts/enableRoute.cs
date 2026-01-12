@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class enableRoute : MonoBehaviour
 {
@@ -10,10 +11,25 @@ public class enableRoute : MonoBehaviour
     public GameObject spotLight2;
     public Light directionalLight;
     public SO_GrassSettings grassSettings;
-
+    public GameObject loadingScreen;
+    public GameObject fadeToBlack;
+    public GameObject loadCam;
     void Start()
     {
+        StartCoroutine(onLoad());
+    }
+    IEnumerator onLoad()
+    {
+        if(loadingScreen !=null)
+            loadingScreen.SetActive(true);
+        fadeToBlack.SetActive(true);
+        yield return new WaitForSecondsRealtime(1f);
+        if(loadingScreen != null)
+            loadingScreen.SetActive(false);
         routes[routeManager.SelectedRouteIndex].SetActive(true);
+        yield return new WaitForSecondsRealtime(1f);
+        loadCam.SetActive(false);
+        fadeToBlack.SetActive(false);
         if (!routeManager.SelectedTime)
         {
             RenderSettings.skybox = Day;

@@ -2454,13 +2454,18 @@ void generateWaterLine(List<Vector2> coords, float width){
     public GameObject loadingScreen;
     public Image loadingBar;
     public GameObject player;
+    public GameObject fadeToBlack;
     IEnumerator generateTerrain()
     {
         if(loadingScreen != null)
             loadingScreen.SetActive(true);
         yield return parseOMAP();
+         fadeToBlack.SetActive(true);
+        yield return new WaitForSecondsRealtime(1f);
         if(loadingScreen != null)
             loadingScreen.SetActive(false);
+        yield return new WaitForSecondsRealtime(1f);
+        fadeToBlack.SetActive(false);
         player.SetActive(true);
     }
     void Update()
