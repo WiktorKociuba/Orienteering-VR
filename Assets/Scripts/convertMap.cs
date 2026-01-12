@@ -174,6 +174,7 @@ public class convertMap : MonoBehaviour
         public List<Vector2> coords = new List<Vector2>();
         public float rotation;
         public string text;
+        public int number;
     }
     public Dictionary<int, isomSymbol> isomSet = new Dictionary<int, isomSymbol>();
     void Start()
@@ -2152,6 +2153,13 @@ void generateWaterLine(List<Vector2> coords, float width){
             }
         }
         GameObject coursePar = new GameObject("Course Parent");
+        Checkpoints checkpoints = null;
+        if(PlayerPCGO.activeInHierarchy){
+            checkpoints = PlayerPCGO.GetComponent<Checkpoints>();
+        }
+        else if(PlayerVRGO.activeInHierarchy){
+            checkpoints = PlayerVRGO.GetComponent<Checkpoints>();
+        }
         if(isSimple){
             
         }
@@ -2160,11 +2168,37 @@ void generateWaterLine(List<Vector2> coords, float width){
             finishObj = Instantiate(controlPrefab, new Vector3(finish.coords[0].x, terrain.SampleHeight(new Vector3(finish.coords[0].x, 0, finish.coords[0].y)),finish.coords[0].y), Quaternion.identity, coursePar.transform);
             startObj.name = "Start";
             finishObj.name = "Finish";
+            startObj.GetComponent<playAudioWhenPunched>().checkpoints = checkpoints;
+            startObj.GetComponent<playAudioWhenPunched>().controlName = "Start";
+            finishObj.GetComponent<playAudioWhenPunched>().checkpoints = checkpoints;
+            finishObj.GetComponent<playAudioWhenPunched>().controlName = "Finish";
             foreach(var controlNum in controlNumbers){
+                float minDist = float.MaxValue;
+                int minId = 0;
                 for(int i = 0; i < controls.Count; i++){
                     float dist = Vector2.Distance(controlNum.coords[0], controls[i].coords[0]);
+                    if(dist == Mathf.Min(minDist,dist)){
+                        minDist = dist;
+                        minId = i;
+                    }
                 }
+                controls[minId].number = int.Parse(controlNum.text);
+                controls[minId].text = controlNum.text;
             }
+            controls.Sort((a,b)=>a.number.CompareTo(b.number));
+            GameObject[] controlsObj = new GameObject[controls.Count];
+            for(int i = 0; i < controls.Count; i++){
+                MapSymbol control = controls[i];
+                GameObject obj = Instantiate(controlPrefab, new Vector3(control.coords[0].x, terrain.SampleHeight(new Vector3(control.coords[0].x,0,control.coords[0].y)),control.coords[0].y),Quaternion.identity, coursePar.transform);
+                obj.name = control.text;
+                playAudioWhenPunched controlPlay = obj.GetComponent<playAudioWhenPunched>();
+                controlPlay.checkpoints = checkpoints;
+                controlPlay.controlName = control.text;
+                controlsObj[i] = obj;
+            }
+            checkpoints.start = startObj;
+            checkpoints.finish = finishObj;
+            checkpoints.checkpoints = controlsObj; 
         }
     }
     // ISOM 2017 symbol set (for now)
