@@ -6,10 +6,12 @@ using System;
 using System.IO;
 using UnityEngine.UI;
 using System.Collections;
+using Unity.VisualScripting;
 
 public class convertMap : MonoBehaviour
 {
     List<MapSymbol> omap;
+    List<MapSymbol> courseSym;
     float minX = float.MaxValue, minY = float.MaxValue, maxY = float.MinValue, maxX = float.MinValue;
     public Terrain terrain;
     public Material defaultMaterial;
@@ -165,11 +167,13 @@ public class convertMap : MonoBehaviour
     public TerrainLayer pathLayer;
     public TerrainLayer asphaltLayer;
     public string filePath;
+    public string coursePath;
     public class MapSymbol
     {
         public string id;
         public List<Vector2> coords = new List<Vector2>();
         public float rotation;
+        public string text;
     }
     public Dictionary<int, isomSymbol> isomSet = new Dictionary<int, isomSymbol>();
     void Start()
@@ -2118,9 +2122,51 @@ void generateWaterLine(List<Vector2> coords, float width){
         return data.GetInterpolatedNormal(normalizedPos.x,normalizedPos.z);
     }
     /*
-        Generate stones
+        Setup the course
     */
-    
+    public GameObject controlPrefab;
+    void spawnContorls(){
+        MapSymbol start = new MapSymbol(), finish = new MapSymbol();
+        List<MapSymbol> controls = new List<MapSymbol>(), controlNumbers = new List<MapSymbol>();
+        MapSymbol simpleCourse = new MapSymbol();
+        bool isSimple = false;
+        foreach(var control in courseSym){
+            print(control.coords[0].x);
+            int id = int.Parse(control.id);
+            if(id == 1){
+                start = control;
+            }
+            else if(id == 2){
+                controls.Add(control);
+            }
+            else if(id == 3){
+                controlNumbers.Add(control);
+            }
+            else if(id == 6){
+                finish = control;
+            }
+            else if(id == 0){
+                simpleCourse = control;
+                isSimple = true;
+                break;
+            }
+        }
+        GameObject coursePar = new GameObject("Course Parent");
+        if(isSimple){
+            
+        }
+        else{
+            GameObject startObj = Instantiate(controlPrefab, new Vector3(start.coords[0].x, terrain.SampleHeight(new Vector3(start.coords[0].x,0,start.coords[0].y)),start.coords[0].y), Quaternion.identity, coursePar.transform),
+            finishObj = Instantiate(controlPrefab, new Vector3(finish.coords[0].x, terrain.SampleHeight(new Vector3(finish.coords[0].x, 0, finish.coords[0].y)),finish.coords[0].y), Quaternion.identity, coursePar.transform);
+            startObj.name = "Start";
+            finishObj.name = "Finish";
+            foreach(var controlNum in controlNumbers){
+                for(int i = 0; i < controls.Count; i++){
+                    float dist = Vector2.Distance(controlNum.coords[0], controls[i].coords[0]);
+                }
+            }
+        }
+    }
     // ISOM 2017 symbol set (for now)
     IEnumerator parseOMAP()
     {
@@ -2153,6 +2199,29 @@ void generateWaterLine(List<Vector2> coords, float width){
                 }
             }
         }
+        mapFile = new XmlDocument();
+        try{
+            mapFile.Load(coursePath);
+            print("success");
+        }
+        catch(System.Exception e)
+        {
+            print($"Failed {e.Message}");
+        }
+        courseSym = new List<MapSymbol>();
+        nsmgr = new XmlNamespaceManager(mapFile.NameTable);
+        nsmgr.AddNamespace("omap", "http://openorienteering.org/apps/mapper/xml/v2");
+        contentPart = mapFile.SelectNodes("//omap:parts/omap:part", nsmgr);
+        foreach(XmlNode contentObject in contentPart){
+            XmlNodeList symbolNodes = contentObject.SelectNodes("omap:objects/omap:object", nsmgr);
+            foreach(XmlNode symbolNode in symbolNodes){
+                MapSymbol symbol = ParseObject(symbolNode, nsmgr);
+                if(symbol != null && symbol.coords.Count > 0){
+                    courseSym.Add(symbol);
+                    print(symbol.coords);
+                }
+            }
+        }
         yield return null;
         if(loadingBar != null)
             loadingBar.fillAmount = 0.1f;
@@ -2180,6 +2249,7 @@ void generateWaterLine(List<Vector2> coords, float width){
         yield return null;
         if(loadingBar != null)
             loadingBar.fillAmount = 0.9f;
+        spawnContorls();
         int objcount = 0;
         foreach(MapSymbol symbol in omap)
         {
@@ -2462,6 +2532,10 @@ void generateWaterLine(List<Vector2> coords, float width){
                     }
                 }
             }
+        }
+        XmlNode textNode = symbolNode.SelectSingleNode("omap:text", nsmgr);
+        if(textNode != null){
+            symbol.text = textNode.InnerText;
         }
         return symbol;
     }
