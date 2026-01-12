@@ -249,25 +249,25 @@ public class convertMap : MonoBehaviour
         temp.id = 22; temp.isomId = 201; temp.type = 1; temp.symbolObject = impassableCliff;
         isomSet[22] = temp;
         temp = new isomSymbol();
-        temp.id = 23; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        temp.id = 23; temp.isomId = 2011; temp.type = 1; temp.symbolObject = impassableCliff;
         isomSet[23] = temp;
         temp = new isomSymbol();
-        temp.id = 24; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        temp.id = 24; temp.isomId = 2012; temp.type = 1; temp.symbolObject = impassableCliff;
         isomSet[24] = temp;
         temp = new isomSymbol();
-        temp.id = 25; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        temp.id = 25; temp.isomId = 2013; temp.type = 1; temp.symbolObject = impassableCliff;
         isomSet[25] = temp;
         temp = new isomSymbol();
         temp.id = 26; temp.isomId = 202; temp.type = 1; temp.symbolObject = cliff;
         isomSet[26] = temp;
         temp = new isomSymbol();
-        temp.id = 27; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        temp.id = 27; temp.isomId = 2021; temp.type = 1; temp.symbolObject = cliff;
         isomSet[27] = temp;
         temp = new isomSymbol();
-        temp.id = 28; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        temp.id = 28; temp.isomId = 2022; temp.type = 1; temp.symbolObject = cliff;
         isomSet[28] = temp;
         temp = new isomSymbol();
-        temp.id = 29; temp.isomId = -1; temp.type = -1; temp.symbolObject = null;
+        temp.id = 29; temp.isomId = 2023; temp.type = 1; temp.symbolObject = cliff;
         isomSet[29] = temp;
         temp = new isomSymbol();
         temp.id = 30; temp.isomId = 2031; temp.type = 0; temp.symbolObject = rockyPit;
@@ -2117,6 +2117,10 @@ void generateWaterLine(List<Vector2> coords, float width){
         );
         return data.GetInterpolatedNormal(normalizedPos.x,normalizedPos.z);
     }
+    /*
+        Generate stones
+    */
+    
     // ISOM 2017 symbol set (for now)
     IEnumerator parseOMAP()
     {
@@ -2246,7 +2250,7 @@ void generateWaterLine(List<Vector2> coords, float width){
             }
             if (refSym.type == 2)
             {
-                //CreateAreaObject(refSym, symbol.coords);
+                CreateAreaObject(refSym, symbol.coords);
             }
         }
         yield return null;
@@ -2325,36 +2329,49 @@ void generateWaterLine(List<Vector2> coords, float width){
     }
     void CreateAreaObject(isomSymbol symbol, List<Vector2> coords)
     {
+        print(symbol.id);
         if (coords.Count < 3)
         {
             Debug.LogWarning($"Too few coordinates for {symbol.isomId}");
             return;
         }
-        GameObject obj = new GameObject($"{symbol.symbolObject.name}_{symbol.isomId}");
-        MeshFilter mf = obj.AddComponent<MeshFilter>();
-        MeshRenderer mr = obj.AddComponent<MeshRenderer>();
-        Material objMaterial = null;
-        if (symbol.symbolObject != null)
-        {
-            MeshRenderer prefabRenderer = symbol.symbolObject.GetComponent<MeshRenderer>();
-            if (prefabRenderer != null && prefabRenderer.sharedMaterial != null)
-            {
-                objMaterial = prefabRenderer.sharedMaterial;
+        float minXBox = coords[0].x, maxXBox = coords[0].x;
+        float minYBox = coords[0].y, maxYBox = coords[0].y;
+        foreach(var coord in coords){
+            if(coord.x<minXBox) minXBox = coord.x;
+            if(coord.x>maxXBox) maxXBox = coord.x;
+            if(coord.y<minYBox) minYBox = coord.y;
+            if(coord.y>maxYBox) maxYBox = coord.y;
+        }
+        int density = 1;
+        float width = maxXBox-minXBox;
+        float height = maxYBox-minYBox;
+        float area = Mathf.Abs(maxXBox-minXBox)*Mathf.Abs(maxYBox-minYBox);
+        int objCount = Mathf.RoundToInt(area*density);
+        System.Random rand = new System.Random();
+        float tolerance = 2f;
+        List<Vector2> existingObj = new List<Vector2>();
+        GameObject objParent = new GameObject($"{symbol.id}_Parent");
+        for(int i = 0, j = 0; i < objCount && j < objCount; j++){
+            Vector2 randomPos = new Vector2(
+                minXBox + (float)rand.NextDouble()*width,
+                minYBox + (float)rand.NextDouble()*height
+            );
+            if(!isPointInPolygon(randomPos, coords))
+                continue;
+            bool isGood = true;
+            foreach(Vector2 otherObj in existingObj){
+                if(Vector2.Distance(randomPos, otherObj) < tolerance){
+                    isGood = false;
+                    break;
+                }
             }
-        }
-        else if (defaultMaterial != null)
-        {
-            objMaterial = defaultMaterial;
-        }
-        mr.sharedMaterial = objMaterial;
-        Mesh areaMesh = CreateMesh(coords);
-        areaMesh.name = $"Mesh_{symbol.isomId}";
-        mf.mesh = areaMesh;
-        MeshCollider collider = obj.AddComponent<MeshCollider>();
-        collider.sharedMesh = areaMesh;
-        if(symbol.id == 80) // white forest
-        {
-            
+            if(isGood){
+                Vector3 pos = new Vector3(randomPos.x,terrain.SampleHeight(new Vector3(randomPos.x,0,randomPos.y)),randomPos.y);
+                GameObject obj = Instantiate(symbol.symbolObject, pos, Quaternion.Euler((float)rand.NextDouble()*360,(float)rand.NextDouble()*360,(float)rand.NextDouble()*360), objParent.transform);
+                obj.name = $"AreaObject{symbol.id}";
+                i++;
+            }
         }
     }
     Mesh CreateMesh(List<Vector2> coords)
