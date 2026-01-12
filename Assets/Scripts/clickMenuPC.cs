@@ -49,7 +49,7 @@ public class clickMenuPC : MonoBehaviour
                 level1.gameObject.SetActive(true);
             }
             else if(btn.name == "map"){
-                StartCoroutine(loadSceneAsync("test"));
+                StartCoroutine(loadSceneAsync("demoMap"));
             }
             else if(btn.name == "exitMenu"){
                 Time.timeScale = 1f;
