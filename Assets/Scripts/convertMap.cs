@@ -2160,8 +2160,27 @@ void generateWaterLine(List<Vector2> coords, float width){
         else if(PlayerVRGO.activeInHierarchy){
             checkpoints = PlayerVRGO.GetComponent<Checkpoints>();
         }
+        GameObject[] controlsObj;
         if(isSimple){
-            
+            controlsObj = new GameObject[simpleCourse.coords.Count];
+            GameObject startObj = Instantiate(controlPrefab, new Vector3(simpleCourse.coords[0].x, terrain.SampleHeight(new Vector3(simpleCourse.coords[0].x,0,simpleCourse.coords[0].y)),simpleCourse.coords[0].y),Quaternion.identity,coursePar.transform);
+            GameObject finishObj = Instantiate(controlPrefab, new Vector3(simpleCourse.coords[simpleCourse.coords.Count].x, terrain.SampleHeight(new Vector3(simpleCourse.coords[simpleCourse.coords.Count].x,0,simpleCourse.coords[simpleCourse.coords.Count].y)),simpleCourse.coords[simpleCourse.coords.Count].y),Quaternion.identity, coursePar.transform);
+            startObj.name = "Start";
+            finishObj.name = "Finish";
+            startObj.GetComponent<playAudioWhenPunched>().checkpoints = checkpoints;
+            startObj.GetComponent<playAudioWhenPunched>().controlName = "Start";
+            finishObj.GetComponent<playAudioWhenPunched>().checkpoints = checkpoints;
+            finishObj.GetComponent<playAudioWhenPunched>().controlName = "Finish";
+            for(int i = 1; i < simpleCourse.coords.Count-1; i++){
+                GameObject obj = Instantiate(controlPrefab, new Vector3(simpleCourse.coords[i].x, terrain.SampleHeight(new Vector3(simpleCourse.coords[i].x,0,simpleCourse.coords[i].y)),simpleCourse.coords[i].y),Quaternion.identity, coursePar.transform);
+                obj.name = i.ToString();
+                obj.GetComponent<playAudioWhenPunched>().checkpoints = checkpoints;
+                obj.GetComponent<playAudioWhenPunched>().controlName = i.ToString();
+                controlsObj[i] = obj;
+            }
+            checkpoints.start = startObj;
+            checkpoints.finish = finishObj;
+            checkpoints.checkpoints = controlsObj;
         }
         else{
             GameObject startObj = Instantiate(controlPrefab, new Vector3(start.coords[0].x, terrain.SampleHeight(new Vector3(start.coords[0].x,0,start.coords[0].y)),start.coords[0].y), Quaternion.identity, coursePar.transform),
@@ -2186,7 +2205,7 @@ void generateWaterLine(List<Vector2> coords, float width){
                 controls[minId].text = controlNum.text;
             }
             controls.Sort((a,b)=>a.number.CompareTo(b.number));
-            GameObject[] controlsObj = new GameObject[controls.Count];
+            controlsObj = new GameObject[controls.Count];
             for(int i = 0; i < controls.Count; i++){
                 MapSymbol control = controls[i];
                 GameObject obj = Instantiate(controlPrefab, new Vector3(control.coords[0].x, terrain.SampleHeight(new Vector3(control.coords[0].x,0,control.coords[0].y)),control.coords[0].y),Quaternion.identity, coursePar.transform);
