@@ -2219,6 +2219,25 @@ void generateWaterLine(List<Vector2> coords, float width){
             checkpoints.finish = finishObj;
             checkpoints.checkpoints = controlsObj; 
         }
+        LayerMask collisionMask = ~((1<<7) | (1<<10));
+        foreach(var obj in controlsObj){
+            bool isSpawned = true;
+            for(int i = 0; i < 100 && Physics.CheckSphere(obj.transform.position,1f,collisionMask); i++){
+                Vector3 randomOffset = UnityEngine.Random.insideUnitCircle*20f;
+                Vector3 testPos = new Vector3(obj.transform.position.x+randomOffset.x,0,obj.transform.position.z+randomOffset.z);
+                testPos.y = terrain.SampleHeight(testPos);
+                if(!Physics.CheckSphere(testPos,1f,collisionMask)){
+                    obj.transform.position = testPos;
+                    break;
+                }
+                if(i==99){
+                    isSpawned = false;
+                }
+            }
+            if(!isSpawned){
+                Debug.Log("Control not spawned");
+            }
+        }
     }
     // ISOM 2017 symbol set (for now)
     IEnumerator parseOMAP()

@@ -17,6 +17,10 @@ PrefabInstance:
       value: ControlNew
       objectReference: {fileID: 0}
     - target: {fileID: 2377484082707636619, guid: 36c86fff9648e5247afbfc56d39044df, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2377484082707636619, guid: 36c86fff9648e5247afbfc56d39044df, type: 3}
       propertyPath: m_TagString
       value: Checkpoint
       objectReference: {fileID: 0}
@@ -68,9 +72,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: 57
       objectReference: {fileID: 0}
+    - target: {fileID: 3934786128134603285, guid: 36c86fff9648e5247afbfc56d39044df, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4817109907159805205, guid: 36c86fff9648e5247afbfc56d39044df, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 4817109907159805205, guid: 36c86fff9648e5247afbfc56d39044df, type: 3}
       propertyPath: m_TagString
       value: Checkpoint
+      objectReference: {fileID: 0}
+    - target: {fileID: 4967498700651303231, guid: 36c86fff9648e5247afbfc56d39044df, type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 4967498700651303231, guid: 36c86fff9648e5247afbfc56d39044df, type: 3}
       propertyPath: m_TagString
@@ -79,6 +95,10 @@ PrefabInstance:
     - target: {fileID: 5393230729788067001, guid: 36c86fff9648e5247afbfc56d39044df, type: 3}
       propertyPath: controlName
       value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 8192933169553796529, guid: 36c86fff9648e5247afbfc56d39044df, type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 8192933169553796529, guid: 36c86fff9648e5247afbfc56d39044df, type: 3}
       propertyPath: m_TagString
