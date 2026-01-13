@@ -128,7 +128,7 @@ public class convertMap : MonoBehaviour
     public GameObject impassableWall; //515
     public GameObject fence; //516
     public GameObject ruinedFence; //517
-    public GameObject impassableFence; //518
+     public GameObject impassableFence; //518
     GameObject crossingPointFence; //519
     GameObject areaNotEnter; //520
     GameObject building; //521

@@ -681,7 +681,7 @@ The purple line will extend a bit into the finish symbol. This is a shortcoming 
 <object type="1" symbol="114"><coords count="6">3487 4409;5245 7022;8570 9920;13606 10442;16646 9160;19306 8067 16;</coords><pattern rotation="0"><coord x="0" y="0"/></pattern></object>
 <object type="1" symbol="28"><coords count="3">3604 3999;5415 7159;5877 10242;</coords><pattern rotation="0"><coord x="0" y="0"/></pattern></object>
 <object type="1" symbol="44"><coords count="9">11421 4074;11305 6579;15776 7234;18782 3611;16161 1415;13926 1877;12153 2879;11395 4172;11421 4074 18;</coords><pattern rotation="0"><coord x="0" y="0"/></pattern></object>
-<object type="1" symbol="48"><coords count="2">13179 4101;13873 3908 16;</coords><pattern rotation="0"><coord x="0" y="0"/></pattern></object>
+<object type="0" symbol="152"><coords count="1">2426 799;</coords></object>
 </objects></part>
 </parts>
 <templates count="0" first_front_template="0">
@@ -689,7 +689,7 @@ The purple line will extend a bit into the finish symbol. This is a shortcoming 
 </templates>
 <view>
 <grid color="#646464" display="0" alignment="0" additional_rotation="0" unit="1" h_spacing="500" v_spacing="500" h_offset="0" v_offset="0" snapping_enabled="true"/>
-<map_view zoom="4" position_x="3043" position_y="-4821"><map opacity="1" visible="true"/><templates count="0"/></map_view>
+<map_view zoom="11.3137" position_x="355" position_y="2604"><map opacity="1" visible="true"/><templates count="0"/></map_view>
 </view>
 </barrier>
 <barrier version="6" required="0.6.0">
