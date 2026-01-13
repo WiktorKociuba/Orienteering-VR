@@ -2453,7 +2453,7 @@ void generateWaterLine(List<Vector2> coords, float width){
             float angle = Mathf.Atan2(direction.y,direction.x)*Mathf.Rad2Deg;
             Quaternion rotation;
             if(!longerSide){
-                rotation = Quaternion.Euler(0, angle, 0);
+                rotation = Quaternion.Euler(0,-angle, 0);
             }
             else{
                 rotation = Quaternion.Euler(0,angle,0);
