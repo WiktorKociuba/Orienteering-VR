@@ -2103,14 +2103,21 @@ void generateWaterLine(List<Vector2> coords, float width){
         Bounds bounds = meshFilter.sharedMesh.bounds;
         float baseLength = bounds.size.z;
         float baseWidth = bounds.size.x;
-        float scaleX = Mathf.Abs(maxX-minX)/baseWidth;
-        float scaleY = 1f;
-        float scaleZ = Mathf.Abs(maxY-minY)/baseLength;
-        Vector3 center = new Vector3((maxX+minX)/2f,0,(maxY+minY)/2f);
-        center.y = avHeight;
-        GameObject obj = Instantiate(waterPlane, center, Quaternion.Euler(0,0,0), waterParent.transform);
-        obj.transform.localScale = new Vector3(scaleX,scaleY,scaleZ);
-        obj.name = "Water Area";
+        float tileSize = 2f;
+        for(float x = minX; x < maxX; x+=tileSize){
+            for(float y = minY; y < maxY; y += tileSize){
+                Vector2 center = new Vector2(x+tileSize/2f, y+tileSize/2f);
+                if(isPointInPolygon(center,coords)){
+                    Vector3 pos = new Vector3(center.x,avHeight,center.y);
+                    Vector3 normal = getTerrainNormal(pos);
+                    Quaternion normalRotation = Quaternion.FromToRotation(Vector3.up, normal);
+                    Vector3 scale = new Vector3((tileSize+0.1f)/baseWidth,1f,(tileSize+0.1f)/baseLength);
+                    GameObject obj = Instantiate(waterPlane, pos, normalRotation,waterParent.transform);
+                    obj.transform.localScale = scale;
+                    obj.name = "Water Tile";
+                }
+            }
+        }
     }
     Vector3 getTerrainNormal(Vector3 pos){
         TerrainData data = terrain.terrainData;
@@ -2126,6 +2133,8 @@ void generateWaterLine(List<Vector2> coords, float width){
         Setup the course
     */
     public GameObject controlPrefab;
+    public GameObject PC;
+    public GameObject VR;
     void spawnContorls(){
         MapSymbol start = new MapSymbol(), finish = new MapSymbol();
         List<MapSymbol> controls = new List<MapSymbol>(), controlNumbers = new List<MapSymbol>();
@@ -2238,6 +2247,8 @@ void generateWaterLine(List<Vector2> coords, float width){
                 Debug.Log("Control not spawned");
             }
         }
+            PC.transform.position = checkpoints.start.transform.position;
+            VR.transform.position = checkpoints.start.transform.position;
     }
     // ISOM 2017 symbol set (for now)
     IEnumerator parseOMAP()
@@ -2392,7 +2403,7 @@ void generateWaterLine(List<Vector2> coords, float width){
             }
             if (refSym.type == 2)
             {
-                CreateAreaObject(refSym, symbol.coords);
+                //CreateAreaObject(refSym, symbol.coords);
             }
         }
         yield return null;
