@@ -7,6 +7,7 @@ using System.IO;
 using UnityEngine.UI;
 using System.Collections;
 using Unity.VisualScripting;
+using UnityEngine.Tilemaps;
 
 public class convertMap : MonoBehaviour
 {
@@ -2115,6 +2116,30 @@ void generateWaterLine(List<Vector2> coords, float width){
                     GameObject obj = Instantiate(waterPlane, pos, normalRotation,waterParent.transform);
                     obj.transform.localScale = scale;
                     obj.name = "Water Tile";
+                }
+                else{
+                    Vector2[] corners = new Vector2[]{
+                        new Vector2(x,y),
+                        new Vector2(x+tileSize,y),
+                        new Vector2(x, y + tileSize),
+                        new Vector2(x+tileSize,y+tileSize)
+                    };
+                    bool spawn = false;
+                    foreach(var corner in corners){
+                        if(isPointInPolygon(corner,coords)){
+                            spawn = true;
+                            break;
+                        }
+                    }
+                    if(spawn){
+                        Vector3 pos = new Vector3(center.x,avHeight,center.y);
+                        Vector3 normal = getTerrainNormal(pos);
+                        Quaternion normalRotation = Quaternion.FromToRotation(Vector3.up, normal);
+                        Vector3 scale = new Vector3((tileSize+0.1f)/baseWidth,1f,(tileSize+0.1f)/baseLength);
+                        GameObject obj = Instantiate(waterPlane, pos, normalRotation,waterParent.transform);
+                        obj.transform.localScale = scale;
+                        obj.name = "Water Tile";
+                    }
                 }
             }
         }
