@@ -2450,13 +2450,13 @@ void generateWaterLine(List<Vector2> coords, float width){
             Vector2 direction = (end-start).normalized;
             int objectCount = Mathf.CeilToInt(segmentLength/objectLength);
             float spacing = objectLength;
-            float angle = Mathf.Atan2(direction.y,direction.x)*Mathf.Rad2Deg;
+            float angle = -Mathf.Atan2(direction.y,direction.x)*Mathf.Rad2Deg;
             Quaternion rotation;
             if(!longerSide){
-                rotation = Quaternion.Euler(0,-angle, 0);
+                rotation = Quaternion.Euler(0,angle, 0);
             }
             else{
-                rotation = Quaternion.Euler(0,angle,0);
+                rotation = Quaternion.Euler(0,-angle,0);
             }
             for(int j = 0; j < objectCount; j++){
                 float lengthToAdd = j*spacing;
