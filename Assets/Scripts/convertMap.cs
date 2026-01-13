@@ -42,24 +42,24 @@ public class convertMap : MonoBehaviour
         public int direction;
     }
     // https://omapwiki.orienteering.sport/specifications/isom/
-    public GameObject contour; //101
-    public GameObject indexContoure; //102
-    public GameObject formLine; //103
-    public GameObject earthBank; //104
-    public GameObject earthWall; //1051
-    public GameObject retainingEarthWall; //1052
-    public GameObject ruinedEarthWall; //106
-    public GameObject erosionGully; //107
-    public GameObject smallErosionGully; //108
-    public GameObject smallKnoll; //109
-    public GameObject smallElongatedKnoll; //110
-    public GameObject smallDepression; //111
-    public GameObject pit; //112
-    public GameObject brokenGround; //113
-    public GameObject veryBrokenGround; //114
-    public GameObject prominentLandformFeature; //115
-    public GameObject impassableCliff; //201
-    public GameObject cliff; //202
+    GameObject contour; //101
+    GameObject indexContoure; //102
+    GameObject formLine; //103
+    GameObject earthBank; //104
+    GameObject earthWall; //1051
+    GameObject retainingEarthWall; //1052
+    GameObject ruinedEarthWall; //106
+    GameObject erosionGully; //107
+    GameObject smallErosionGully; //108
+    GameObject smallKnoll; //109
+    GameObject smallElongatedKnoll; //110
+    GameObject smallDepression; //111
+    GameObject pit; //112
+    GameObject brokenGround; //113
+    GameObject veryBrokenGround; //114
+    GameObject prominentLandformFeature; //115
+    GameObject impassableCliff; //201
+    GameObject cliff; //202
     public GameObject rockyPit; //2031
     public GameObject dangerousPit; //2032
     public GameObject Boulder; //204
@@ -71,57 +71,57 @@ public class convertMap : MonoBehaviour
     public GameObject stonyGroundRun; //210
     public GameObject stonyGroundWalk; //211
     public GameObject stonyGroundFight; //212
-    public GameObject sandyGround; //213
-    public GameObject bareRock; //214
+    GameObject sandyGround; //213
+    GameObject bareRock; //214
     public GameObject trench; //215
-    public GameObject uncrossableBodyOfWater; //301
-    public GameObject shallowBodyOfWater; //302
-    public GameObject waterhole; //303
-    public GameObject crossableWatercourse; //304
-    public GameObject smallCrossableWatercourse; //305
-    public GameObject seasonalWaterChannel; //306
-    public GameObject uncrossableMarsh; //307
-    public GameObject marsh; //308
-    public GameObject narrowMarsh; //309
-    public GameObject indistinctMarsh; //310
-    public GameObject well; //311
-    public GameObject spring; //312
-    public GameObject prominentWaterFeature; //313
-    public GameObject openLand; //401
-    public GameObject openLandWithTrees; //402
-    public GameObject openLandWithBushes; //402.1
-    public GameObject roughOpenLand; //403
-    public GameObject roughOpenLandWithTrees; //404
-    public GameObject roughOpenLandWithBushes; //404.1
-    public GameObject forest; //405
-    public GameObject vegetationSlow; //406
-    public GameObject vegetationSlowOneDir; //406.1
-    public GameObject vegetationSlowGoodVis; //407
-    public GameObject vegetationWalk; //408
-     public GameObject vegetationWalkOneDir; //408.1;408.2
-    public GameObject vegetationWalkGoodVis; //409
-    public GameObject vegetationFight; //410
-    public GameObject vegetationFightOneDir; //410.1;410.2;410.3
-    public GameObject cultivatedLand; //412
-    public GameObject orchard; //413
-    public GameObject vineyard; //414
-    public GameObject cultivationBoundary; //415
-    public GameObject distinctVegetationBoundary; //416
+    GameObject uncrossableBodyOfWater; //301
+    GameObject shallowBodyOfWater; //302
+    GameObject waterhole; //303
+    GameObject crossableWatercourse; //304
+    GameObject smallCrossableWatercourse; //305
+    GameObject seasonalWaterChannel; //306
+    GameObject uncrossableMarsh; //307
+    GameObject marsh; //308
+    GameObject narrowMarsh; //309
+    GameObject indistinctMarsh; //310
+    GameObject well; //311
+    GameObject spring; //312
+    GameObject prominentWaterFeature; //313
+    GameObject openLand; //401
+    GameObject openLandWithTrees; //402
+    GameObject openLandWithBushes; //402.1
+    GameObject roughOpenLand; //403
+    GameObject roughOpenLandWithTrees; //404
+    GameObject roughOpenLandWithBushes; //404.1
+    GameObject forest; //405
+    GameObject vegetationSlow; //406
+    GameObject vegetationSlowOneDir; //406.1
+    GameObject vegetationSlowGoodVis; //407
+    GameObject vegetationWalk; //408
+    GameObject vegetationWalkOneDir; //408.1;408.2
+    GameObject vegetationWalkGoodVis; //409
+    GameObject vegetationFight; //410
+    GameObject vegetationFightOneDir; //410.1;410.2;410.3
+    GameObject cultivatedLand; //412
+    GameObject orchard; //413
+    GameObject vineyard; //414
+    GameObject cultivationBoundary; //415
+    GameObject distinctVegetationBoundary; //416
     public GameObject prominentLargeTree; //417
     public GameObject prominentSmallTree; //418
     public GameObject prominentVegetationFeature; //419
-    public GameObject pavedArea; //501
-    public GameObject wideRoad; //502
-    public GameObject road; //503
-    public GameObject vehicleTrack; //504
-    public GameObject footpath; //505
-    public GameObject smallFootpath; //506
-    public GameObject lessDistinctSmallFootpath; //507
-    public GameObject linearTrace; //508
+    GameObject pavedArea; //501
+    GameObject wideRoad; //502
+    GameObject road; //503
+    GameObject vehicleTrack; //504
+    GameObject footpath; //505
+    GameObject smallFootpath; //506
+    GameObject lessDistinctSmallFootpath; //507
+    GameObject linearTrace; //508
     public GameObject railway; //509
     public GameObject powerLine; //510
     public GameObject majorPowerLine; //511
-    public GameObject bridgeTunnel; //512
+    GameObject bridgeTunnel; //512
     public GameObject wall; //5131
     public GameObject retainingWall; //5132
     public GameObject ruinedWall; //514
@@ -129,37 +129,37 @@ public class convertMap : MonoBehaviour
     public GameObject fence; //516
     public GameObject ruinedFence; //517
     public GameObject impassableFence; //518
-    public GameObject crossingPointFence; //519
-    public GameObject areaNotEnter; //520
-    public GameObject building; //521
-    public GameObject canopy; //522
+    GameObject crossingPointFence; //519
+    GameObject areaNotEnter; //520
+    GameObject building; //521
+    GameObject canopy; //522
     public GameObject ruin; //523
     public GameObject highTower; //524
     public GameObject smallTower; //525
     public GameObject cairn; //526
     public GameObject fodderRack; //527
-    public GameObject prominentLineFeature; //528
-    public GameObject prominentImpassableLineFeature; //529
+    GameObject prominentLineFeature; //528
+    GameObject prominentImpassableLineFeature; //529
     public GameObject prominentManMadeFeatureRing; //530
     public GameObject prominentManMadeFeatureX; //531
-    public GameObject stairway; //532
-    public GameObject magneticNorthLine; //601
-    public GameObject registrationMark; //602
-    public GameObject spotHeigh; //603
-    public GameObject start; //701
-    public GameObject mapIssuePoint; //702
-    public GameObject controlPoint; //703
-    public GameObject controlNumber; //704
-    public GameObject courseLine; //705
-    public GameObject finish; //706
-    public GameObject markedRoute; //707
-    public GameObject outOfBoundsBound; //708
-    public GameObject outOfBoundsArea; //709
-    public GameObject crossingPoint; //710
-    public GameObject outOfBoundsRoute; //711
-    public GameObject firstAidPost; //712
-    public GameObject refreshmentPoint; //713
-    public GameObject continuingPoint; //715
+    GameObject stairway; //532
+    GameObject magneticNorthLine; //601
+    GameObject registrationMark; //602
+    GameObject spotHeigh; //603
+    GameObject start; //701
+    GameObject mapIssuePoint; //702
+    GameObject controlPoint; //703
+    GameObject controlNumber; //704
+    GameObject courseLine; //705
+    GameObject finish; //706
+    GameObject markedRoute; //707
+    GameObject outOfBoundsBound; //708
+    GameObject outOfBoundsArea; //709
+    GameObject crossingPoint; //710
+    GameObject outOfBoundsRoute; //711
+    GameObject firstAidPost; //712
+    GameObject refreshmentPoint; //713
+    GameObject continuingPoint; //715
     public TerrainLayer grassLayer;
     public TerrainLayer sandLayer;
     public TerrainLayer rockLayer;
