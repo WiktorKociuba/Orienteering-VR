@@ -2523,7 +2523,10 @@ void generateWaterLine(List<Vector2> coords, float width){
                 Vector2 pos2D = start+direction*lengthToAdd;
                 float terrainHeight = terrain.SampleHeight(new Vector3(pos2D.x,0,pos2D.y));
                 Vector3 position = new Vector3(pos2D.x,terrainHeight,pos2D.y);
-                GameObject obj= Instantiate(symbol.symbolObject, position, rotation, parentObj.transform);
+                Vector3 normal = getTerrainNormal(position);
+                Quaternion normalRotation = Quaternion.FromToRotation(Vector3.up,normal);
+                Quaternion finalRotation = normalRotation*rotation;
+                GameObject obj= Instantiate(symbol.symbolObject, position, finalRotation, parentObj.transform);
                 obj.name = $"{symbol.symbolObject.name}";
             }
         }
