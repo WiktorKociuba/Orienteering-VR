@@ -2160,6 +2160,8 @@ void generateWaterLine(List<Vector2> coords, float width){
     public GameObject controlPrefab;
     public GameObject PC;
     public GameObject VR;
+    private Vector3 startPos;
+    public GameObject VRObjects;
     void spawnContorls(){
         MapSymbol start = new MapSymbol(), finish = new MapSymbol();
         List<MapSymbol> controls = new List<MapSymbol>(), controlNumbers = new List<MapSymbol>();
@@ -2215,6 +2217,7 @@ void generateWaterLine(List<Vector2> coords, float width){
             checkpoints.start = startObj;
             checkpoints.finish = finishObj;
             checkpoints.checkpoints = controlsObj;
+            startPos = startObj.transform.position;
         }
         else{
             GameObject startObj = Instantiate(controlPrefab, new Vector3(start.coords[0].x, terrain.SampleHeight(new Vector3(start.coords[0].x,0,start.coords[0].y)),start.coords[0].y), Quaternion.identity, coursePar.transform),
@@ -2252,6 +2255,7 @@ void generateWaterLine(List<Vector2> coords, float width){
             checkpoints.start = startObj;
             checkpoints.finish = finishObj;
             checkpoints.checkpoints = controlsObj; 
+            startPos = startObj.transform.position;
         }
         LayerMask collisionMask = ~((1<<7) | (1<<10));
         foreach(var obj in controlsObj){
@@ -2272,8 +2276,24 @@ void generateWaterLine(List<Vector2> coords, float width){
                 Debug.Log("Control not spawned");
             }
         }
-            PC.transform.position = checkpoints.start.transform.position;
-            VR.transform.position = checkpoints.start.transform.position;
+        Vector3 spawnPos = new Vector3(startPos.x+3f,0,startPos.z);
+        spawnPos.y = terrain.SampleHeight(spawnPos);
+        Vector3 direction = startPos-spawnPos;
+        direction.y = 0;
+        float angle = Mathf.Atan2(direction.x,direction.z)*Mathf.Rad2Deg;
+        Quaternion lookRotation = Quaternion.Euler(0,angle,0);
+        PC.GetComponent<MovePlayerPC>().enabled = false;
+        PC.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+        PC.GetComponent<Rigidbody>().position = spawnPos;
+        PC.GetComponent<Rigidbody>().rotation = lookRotation;
+        PC.GetComponent<MovePlayerPC>().enabled = true;
+        VR.GetComponent<MovePlayer>().enabled = false;
+        VR.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+        VR.GetComponent<Rigidbody>().position = spawnPos;
+        VR.GetComponent<Rigidbody>().rotation = lookRotation;
+        VR.GetComponent<MovePlayer>().enabled = true;
+        VRObjects.transform.position = spawnPos;
+        VRObjects.transform.rotation = lookRotation;
     }
     // ISOM 2017 symbol set (for now)
     IEnumerator parseOMAP()
