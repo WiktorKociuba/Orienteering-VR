@@ -2512,7 +2512,11 @@ void generateWaterLine(List<Vector2> coords, float width){
                 rotation = Quaternion.Euler(0,angle, 0);
             }
             else{
-                rotation = Quaternion.Euler(0,-angle,0);
+                rotation = Quaternion.Euler(0,90+angle,0);
+            }
+            if(symbol.id >= 121 && symbol.id <= 124){
+                objectCount = 1;
+                rotation.y = rotation.y+90;
             }
             for(int j = 0; j < objectCount; j++){
                 float lengthToAdd = j*spacing;
@@ -2523,7 +2527,9 @@ void generateWaterLine(List<Vector2> coords, float width){
                 obj.name = $"{symbol.symbolObject.name}";
             }
         }
-
+        if(symbol.id >= 121 && symbol.id <= 124){
+            CreatePointObject(symbol,new List<Vector2>{coords[coords.Count-1]});
+        }
     }
     void CreateAreaObject(isomSymbol symbol, List<Vector2> coords)
     {
