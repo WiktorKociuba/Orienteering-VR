@@ -1556,6 +1556,32 @@ public class convertMap : MonoBehaviour
     public float grassDensityPerSquareMeter = 0.0001f;
     Camera grassRendererCamera;
     public Material grassShaderMaterial;
+    bool isGrassValid(Vector2 coord){
+        float colDist = 3f;
+        foreach(MapSymbol symbol in delSymbols){
+            int type = isomSet[int.Parse(symbol.id)].type;
+            if(type == 0){
+                if(Vector2.Distance(symbol.coords[0],coord) < colDist){
+                    return false;
+                }
+            }
+            if(type == 1){
+                for(int i = 0; i < symbol.coords.Count-1; i++){
+                    Vector2 start = symbol.coords[i];
+                    Vector2 end = symbol.coords[i+1];
+                    if(distancePointToSegment(coord,start,end) < colDist){
+                        return false;
+                    }
+                }
+            }
+            if(type == 3){
+                if(isPointInPolygon(coord,symbol.coords)){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
     void setupGrassSystem(){     
         if(!generateGrass || grassSettings == null){
             Debug.LogWarning("Grass generation disabled");
@@ -1621,6 +1647,9 @@ public class convertMap : MonoBehaviour
         for(int i = 0; i < totalGrassCount; i++){
             float x = terrainPos.x + (float)rand.NextDouble()*terrainSize.x;
             float z = terrainPos.z + (float)rand.NextDouble()*terrainSize.z;
+            if(!isGrassValid(new Vector2(x,z))){
+                continue;
+            }
             Vector3 worldPos = new Vector3(x,0,z);
             float y = terrain.SampleHeight(worldPos);
             Vector3 normalizedPos = new Vector3(
@@ -2321,10 +2350,11 @@ void generateWaterLine(List<Vector2> coords, float width){
     /*
         Remove unnecessary trees
     */
+    private List<MapSymbol> delSymbols;
     void removeTrees(){
         TerrainData data = terrain.terrainData;
         List<TreeInstance> validTrees = new List<TreeInstance>();
-        List<MapSymbol> delSymbols = new List<MapSymbol>();
+        delSymbols = new List<MapSymbol>();
         foreach(var symbol in omap){
             int isomId = isomSet[int.Parse(symbol.id)].isomId;
             if((isomId >= 201 && isomId <= 207) ||(isomId >= 2010 && isomId < 2080) || (isomId >= 301 && isomId <= 313) || (isomId >= 3010 && isomId < 3140) || (isomId >= 417 && isomId <= 419) || (isomId >= 501 && isomId <= 511) || (isomId >= 5010 && isomId < 5120) || (isomId >= 513 && isomId <= 518) || (isomId >= 523 && isomId <= 531)){
@@ -2445,11 +2475,10 @@ void generateWaterLine(List<Vector2> coords, float width){
         yield return null;
         if(loadingBar != null)
             loadingBar.fillAmount = 0.7f;
-        setupGrassSystem();
+        spawnContorls();
         yield return null;
         if(loadingBar != null)
-            loadingBar.fillAmount = 0.9f;
-        spawnContorls();
+            loadingBar.fillAmount = 0.8f;
         int objcount = 0;
         foreach(MapSymbol symbol in omap)
         {
@@ -2525,8 +2554,12 @@ void generateWaterLine(List<Vector2> coords, float width){
         }
         yield return null;
         if(loadingBar != null)
-            loadingBar.fillAmount = 0.95f;
+            loadingBar.fillAmount = 0.85f;
         removeTrees();
+        yield return null;
+        if(loadingBar != null)
+            loadingBar.fillAmount = 0.9f;
+        setupGrassSystem();
         yield return null;
         if(loadingBar != null)
             loadingBar.fillAmount = 1f;
