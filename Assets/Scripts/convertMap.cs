@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine.Tilemaps;
+using System.Data.Common;
 
 public class convertMap : MonoBehaviour
 {
@@ -2317,6 +2318,55 @@ void generateWaterLine(List<Vector2> coords, float width){
         VRObjects.transform.position = spawnPos;
         VRObjects.transform.rotation = lookRotation;
     }
+    /*
+        Remove unnecessary trees
+    */
+    void removeTrees(){
+        TerrainData data = terrain.terrainData;
+        List<TreeInstance> validTrees = new List<TreeInstance>();
+        List<MapSymbol> delSymbols = new List<MapSymbol>();
+        foreach(var symbol in omap){
+            int isomId = isomSet[int.Parse(symbol.id)].isomId;
+            if((isomId >= 201 && isomId <= 207) ||(isomId >= 2010 && isomId < 2080) || (isomId >= 301 && isomId <= 313) || (isomId >= 3010 && isomId < 3140) || (isomId >= 417 && isomId <= 419) || (isomId >= 501 && isomId <= 511) || (isomId >= 5010 && isomId < 5120) || (isomId >= 513 && isomId <= 518) || (isomId >= 523 && isomId <= 531)){
+                delSymbols.Add(symbol);
+            }
+        }
+        float colDist = 3f;
+        foreach(TreeInstance tree in data.treeInstances){
+            Vector3 treeWorldPos = Vector3.Scale(tree.position, data.size)+terrain.transform.position;
+            bool delete = false;
+            foreach(MapSymbol symbol in delSymbols){
+                int type = isomSet[int.Parse(symbol.id)].type;
+                Vector2 treePos2D = new Vector2(treeWorldPos.x,treeWorldPos.z);
+                if(type == 0){
+                    if(Vector2.Distance(treePos2D, symbol.coords[0]) < colDist){
+                        delete = true;
+                    }
+                }
+                else if(type == 1){
+                    for(int i = 0; i < symbol.coords.Count-1; i++){
+                        Vector2 start = symbol.coords[i];
+                        Vector2 end  = symbol.coords[i+1];
+                        if(distancePointToSegment(treePos2D,start,end) < colDist){
+                            delete = true;
+                        }
+                    }
+                }
+                else if(type == 2){
+                    if(isPointInPolygon(treePos2D, symbol.coords)){
+                        delete = true;
+                    }
+                }
+                if(delete)
+                    break;
+            }
+            if(!delete){
+                validTrees.Add(tree);
+            }
+        }
+        data.treeInstances = validTrees.ToArray();
+        data.RefreshPrototypes();
+    }
     // ISOM 2017 symbol set (for now)
     IEnumerator parseOMAP()
     {
@@ -2473,6 +2523,10 @@ void generateWaterLine(List<Vector2> coords, float width){
                 //CreateAreaObject(refSym, symbol.coords);
             }
         }
+        yield return null;
+        if(loadingBar != null)
+            loadingBar.fillAmount = 0.95f;
+        removeTrees();
         yield return null;
         if(loadingBar != null)
             loadingBar.fillAmount = 1f;
