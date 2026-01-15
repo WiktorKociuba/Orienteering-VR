@@ -9,6 +9,7 @@ using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine.Tilemaps;
 using System.Data.Common;
+using TMPro;
 
 public class convertMap : MonoBehaviour
 {
@@ -2357,6 +2358,7 @@ void generateWaterLine(List<Vector2> coords, float width){
             startPos = startObj.transform.position;
         }
         LayerMask collisionMask = ~((1<<7) | (1<<10));
+        List<string> unknownCoords = new List<string>();
         foreach(var obj in controlsObj){
             bool isSpawned = true;
             for(int i = 0; i < 100 && Physics.CheckSphere(obj.transform.position,1f,collisionMask); i++){
@@ -2372,8 +2374,12 @@ void generateWaterLine(List<Vector2> coords, float width){
                 }
             }
             if(!isSpawned){
-                Debug.Log("Control not spawned");
+                unknownCoords.Add(obj.name);    
             }
+        }
+        if(unknownCoords.Count > 0){
+            string errorText = $"Control(s) {string.Join(", ",unknownCoords)} might not be in the intended place. \n Consider changing the position a little bit.";
+            StartCoroutine(displayError(errorText));
         }
         Vector3 spawnPos = new Vector3(startPos.x+3f,0,startPos.z);
         spawnPos.y = terrain.SampleHeight(spawnPos);
@@ -2393,6 +2399,13 @@ void generateWaterLine(List<Vector2> coords, float width){
         VR.GetComponent<MovePlayer>().enabled = true;
         VRObjects.transform.position = spawnPos;
         VRObjects.transform.rotation = lookRotation;
+    }
+    public GameObject popup;
+    public TextMeshProUGUI popupText;
+    IEnumerator displayError(string text){
+        popup.SetActive(true);
+        popupText.text = text;
+        yield return null;
     }
     /*
         Remove unnecessary trees
@@ -2861,6 +2874,8 @@ void generateWaterLine(List<Vector2> coords, float width){
         yield return new WaitForSecondsRealtime(1f);
         fadeToBlack.SetActive(false);
         player.SetActive(true);
+        yield return new WaitForSecondsRealtime(5f);
+        popup.SetActive(false);
     }
     void Update()
     {
