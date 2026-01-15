@@ -431,15 +431,13 @@ The orientation of the symbol indicates the direction in which the corner points
 <symbol type="8" id="206" code="13.0" name="Length of special route"><description>This is used with the special instruction (13.x) to give the distance from the last control to the end of the route (control, map exchange, or finish).</description><text_symbol icon_text="80m"><font family="Arial" size="3500"/><text color="1" line_spacing="1" paragraph_spacing="0" character_spacing="0" kerning="true"/></text_symbol></symbol>
 </symbols>
 <parts count="1" current="0">
-<part name="default part"><objects count="8">
+<part name="default part"><objects count="6">
 <object type="0" symbol="1" rotation="-2.38409"><coords count="1">4433 14462;</coords></object>
 <object type="0" symbol="2"><coords count="1">849 2707;</coords></object>
-<object type="0" symbol="2"><coords count="1">9944 -3305;</coords></object>
-<object type="0" symbol="2"><coords count="1">18538 3632;</coords></object>
+<object type="0" symbol="2"><coords count="1">8329 6136;</coords></object>
 <object type="0" symbol="6"><coords count="1">14337 10030;</coords></object>
 <object type="4" symbol="3" h_align="1" v_align="2"><coords count="1">-3565 -1084;</coords><text>1</text></object>
-<object type="4" symbol="3" h_align="1" v_align="2"><coords count="1">9932 -9390;</coords><text>2</text></object>
-<object type="4" symbol="3" h_align="1" v_align="2"><coords count="1">22386 -970;</coords><text>3</text></object>
+<object type="4" symbol="3" h_align="1" v_align="2"><coords count="1">11550 742;</coords><text>2</text></object>
 </objects></part>
 </parts>
 <templates count="1" first_front_template="1">
@@ -448,7 +446,7 @@ The orientation of the symbol indicates the direction in which the corner points
 </templates>
 <view>
 <grid color="#c0c0c0" display="0" alignment="0" additional_rotation="0" unit="0" h_spacing="3" v_spacing="3" h_offset="0" v_offset="0" snapping_enabled="true"/>
-<map_view zoom="2" position_x="-11142" position_y="-8327"><map opacity="1" visible="true"/><templates count="1"><ref template="0" visible="true" opacity="1"/></templates></map_view>
+<map_view zoom="4.00141" position_x="274" position_y="2032"><map opacity="1" visible="true"/><templates count="1"><ref template="0" visible="true" opacity="1"/></templates></map_view>
 </view>
 </barrier>
 <barrier version="6" required="0.6.0">
@@ -466,6 +464,10 @@ The orientation of the symbol indicates the direction in which the corner points
 <step type="1"><affected_objects part="0"><ref object="5"/></affected_objects></step>
 <step type="1"><affected_objects part="0"><ref object="6"/></affected_objects></step>
 <step type="1"><affected_objects part="0"><ref object="7"/></affected_objects></step>
+<step type="2"><affected_objects part="0"><ref object="2"/></affected_objects><contained_objects count="1"><object type="0" symbol="2"><coords count="1">9944 -3305;</coords></object></contained_objects></step>
+<step type="2"><affected_objects part="0"><ref object="6"/></affected_objects><contained_objects count="1"><object type="4" symbol="3" h_align="1" v_align="2"><coords count="1">22386 -970;</coords><text>3</text></object></contained_objects></step>
+<step type="0"><affected_objects part="0"><ref object="2"/></affected_objects><contained_objects count="1"><object type="0" symbol="2"><coords count="1">18538 3632;</coords></object></contained_objects></step>
+<step type="0"><affected_objects part="0"><ref object="5"/></affected_objects><contained_objects count="1"><object type="4" symbol="3" h_align="1" v_align="2"><coords count="1">9932 -9390;</coords><text>2</text></object></contained_objects></step>
 </undo>
 <redo>
 </redo>

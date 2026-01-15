@@ -53,9 +53,7 @@ public class clickMenuPC : MonoBehaviour
             }
             else if(btn.name == "exitMenu"){
                 Time.timeScale = 1f;
-                SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().name);
-                SceneManager.LoadScene("mainMenu");
-                Destroy(player);
+                StartCoroutine(loadSceneAsync("mainMenu"));
             }
             else if(btn.name == "Resume"){
                 if(pauseMenuScript != null)
@@ -170,7 +168,7 @@ public class clickMenuPC : MonoBehaviour
     public GameObject loadingScreen;
     public Image loadingBar;
     public GameObject fadeToBlack;
-    IEnumerator loadSceneAsync(string scene, int route = -1){
+    public IEnumerator loadSceneAsync(string scene, int route = -1){
         fadeToBlack.SetActive(true);
         yield return new WaitForSecondsRealtime(1f);
         if(loadingScreen != null)

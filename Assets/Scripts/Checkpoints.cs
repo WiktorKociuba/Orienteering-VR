@@ -16,6 +16,7 @@ public class Checkpoints : MonoBehaviour
 
     [Header("Player")]
     public GameObject player;
+    public clickMenuPC menuPC;
 
     [Header("Tutorial")]
     public bool ifTutorial = false;
@@ -69,7 +70,7 @@ public class Checkpoints : MonoBehaviour
                     punchedControl = "Finish";
                     print($"Finished, time: {time}");
                     finished = true;
-                    StartCoroutine(GoBackToMenu());
+                    StartCoroutine(menuPC.loadSceneAsync("mainMenu"));
                 }
             }
             for (int i = 0; i < checkpoints.Length; i++)
@@ -98,13 +99,4 @@ public class Checkpoints : MonoBehaviour
         }
     }
     
-    private IEnumerator GoBackToMenu()
-    {
-        yield return new WaitForSeconds(5);
-        SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().name);
-        SceneManager.LoadScene("mainMenu");
-        Destroy(player);
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-    }
 }
