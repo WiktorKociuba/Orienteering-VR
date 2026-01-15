@@ -1264,7 +1264,7 @@ public class convertMap : MonoBehaviour
                     paintArea(alphamap, symbol.coords, layerIndex, alphamapWidth, alphamapHeight);
                 }
                 if(id == 80){// white forest
-                    generateTreePosition(symbol.coords,1, 2);
+                    generateTreePosition(symbol.coords,1.2f, 2);
                 }
                 else if(id >= 81 && id <= 83){//vegetationSlow
                     generateTreePosition(symbol.coords,2,2);
@@ -1560,6 +1560,10 @@ public class convertMap : MonoBehaviour
         float colDist = 3f;
         foreach(MapSymbol symbol in delSymbols){
             int type = isomSet[int.Parse(symbol.id)].type;
+            int isomId = isomSet[int.Parse(symbol.id)].isomId;
+            if((isomId >= 401 && isomId <= 404) || (isomId >= 4010 && isomId < 4050)){
+                continue;
+            }
             if(type == 0){
                 if(Vector2.Distance(symbol.coords[0],coord) < colDist){
                     return false;
@@ -2357,7 +2361,7 @@ void generateWaterLine(List<Vector2> coords, float width){
         delSymbols = new List<MapSymbol>();
         foreach(var symbol in omap){
             int isomId = isomSet[int.Parse(symbol.id)].isomId;
-            if((isomId >= 201 && isomId <= 207) ||(isomId >= 2010 && isomId < 2080) || (isomId >= 301 && isomId <= 313) || (isomId >= 3010 && isomId < 3140) || (isomId >= 417 && isomId <= 419) || (isomId >= 501 && isomId <= 511) || (isomId >= 5010 && isomId < 5120) || (isomId >= 513 && isomId <= 518) || (isomId >= 523 && isomId <= 531)){
+            if((isomId >= 401 && isomId <= 404) || (isomId >= 4010 && isomId < 4050) || (isomId >= 201 && isomId <= 207) ||(isomId >= 2010 && isomId < 2080) || (isomId >= 301 && isomId <= 313) || (isomId >= 3010 && isomId < 3140) || (isomId >= 417 && isomId <= 419) || (isomId >= 501 && isomId <= 511) || (isomId >= 5010 && isomId < 5120) || (isomId >= 513 && isomId <= 518) || (isomId >= 523 && isomId <= 531)){
                 delSymbols.Add(symbol);
             }
         }
@@ -2396,6 +2400,15 @@ void generateWaterLine(List<Vector2> coords, float width){
         }
         data.treeInstances = validTrees.ToArray();
         data.RefreshPrototypes();
+        foreach(var symbol in omap){
+            int isomId = isomSet[int.Parse(symbol.id)].isomId;
+            if(isomId == 402 || isomId == 404){
+                generateTreePosition(symbol.coords,0.8f,3);
+            }
+            if(isomId == 4021 || isomId == 4041){
+                generateTreePosition(symbol.coords, 1.67f, 4);
+            }
+        }
     }
     // ISOM 2017 symbol set (for now)
     IEnumerator parseOMAP()
