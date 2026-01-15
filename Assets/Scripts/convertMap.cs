@@ -14,7 +14,7 @@ public class convertMap : MonoBehaviour
     List<MapSymbol> omap;
     List<MapSymbol> courseSym;
     float minX = float.MaxValue, minY = float.MaxValue, maxY = float.MinValue, maxX = float.MinValue;
-    public Terrain terrain;
+    Terrain terrain;
     public Material defaultMaterial;
     public class isomSymbol
     {
@@ -74,7 +74,7 @@ public class convertMap : MonoBehaviour
     public GameObject stonyGroundFight; //212
     GameObject sandyGround; //213
     GameObject bareRock; //214
-    public GameObject trench; //215
+    GameObject trench; //215
     GameObject uncrossableBodyOfWater; //301
     GameObject shallowBodyOfWater; //302
     GameObject waterhole; //303
@@ -1552,7 +1552,6 @@ public class convertMap : MonoBehaviour
     public bool generateGrass = true;
     public LayerMask grassLayerMask = ~0;
     private GrassComputeScript grassCompute;
-    public Camera playerCamera;
     public float grassDensityPerSquareMeter = 0.0001f;
     Camera grassRendererCamera;
     public Material grassShaderMaterial;
@@ -1782,6 +1781,11 @@ public class convertMap : MonoBehaviour
                     lift.elevChange = -1.5f/terrainMaxHeight;
                     lineFeatures.Add(lift);
                     continue;
+                case 215:
+                    lift.coords = symbol.coords;
+                    lift.elevChange = -1.5f/terrainMaxHeight;
+                    lineFeatures.Add(lift);
+                    continue;
                 case 108: //smallErosionGully;
                     lift.coords = symbol.coords;
                     lift.elevChange = -1f/terrainMaxHeight;
@@ -1910,6 +1914,18 @@ public class convertMap : MonoBehaviour
                     areaFeatures.Add(alft);
                     generateWaterArea(symbol.coords);
                     continue;
+                case 2031:
+                    ptft.coords = symbol.coords[0];
+                    ptft.elevChange = -3f/terrainMaxHeight;
+                    pointFeatures.Add(ptft);
+                    ptft.id = 2031;
+                    continue;
+                case 2032:
+                    ptft.coords = symbol.coords[0];
+                    ptft.elevChange = -3f/terrainMaxHeight;
+                    pointFeatures.Add(ptft);
+                    ptft.id = 2032;
+                    continue;
                 default:
                     continue; 
             }
@@ -1941,6 +1957,12 @@ public class convertMap : MonoBehaviour
         foreach(var ft in feat){
             if(ft.id == 312 || ft.id == 313 || ft.id == 311 || ft.id == 303){
                 generateWaterPlane(ft.coords,radius);
+            }
+            if(ft.id == 2031 ){
+                CreatePointObject(isomSet[30],new List<Vector2>{ft.coords});
+            }
+            if(ft.id == 2032){
+                CreatePointObject(isomSet[31],new List<Vector2>{ft.coords});
             }
         }
     }
