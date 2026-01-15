@@ -1243,6 +1243,7 @@ public class convertMap : MonoBehaviour
             }
         }
     }
+    private List<List<Vector2>> treeCoords = new List<List<Vector2>>();
     void paintTerrain(){
         TerrainData data = terrain.terrainData;
         int alphamapWidth = data.alphamapWidth;
@@ -1265,20 +1266,24 @@ public class convertMap : MonoBehaviour
                 }
                 if(id == 80){// white forest
                     generateTreePosition(symbol.coords,1.2f, 2);
+                    treeCoords.Add(symbol.coords);
                 }
                 else if(id >= 81 && id <= 83){//vegetationSlow
                     generateTreePosition(symbol.coords,2,2);
                     spawnSlowZones(symbol.coords,0);
+                    treeCoords.Add(symbol.coords);
                 }
                 else if(id >= 84 && id <= 87)//vegetationWalk
                 {
                     generateTreePosition(symbol.coords,3, 0);
                     spawnSlowZones(symbol.coords,1);
+                    treeCoords.Add(symbol.coords);
                 }
                 else if(id >= 88  && id <= 92)//vegetationFight
                 {
                     generateTreePosition(symbol.coords,6,0);
                     spawnSlowZones(symbol.coords,2);
+                    treeCoords.Add(symbol.coords);
                 }
             } 
             if(id >= 115 && id <= 119){
@@ -1510,6 +1515,44 @@ public class convertMap : MonoBehaviour
             i++;
         }
         spawnTreesOnTerrain(treePositions, treePrototypeIndex);
+    }
+    void generateBackgroundTrees(){
+        TerrainData data = terrain.terrainData;
+        Vector3 terrainSize = data.size;
+        Vector3 terrainPos = terrain.transform.position;
+        float area = terrainSize.x*terrainSize.z;
+        float density = 1.2f;
+        int treeCount = Mathf.RoundToInt((area/100)*density);
+        List<Vector2> treePositions = new List<Vector2>();
+        System.Random rand = new System.Random();
+        float minTreeDistance = 1f;
+        for(int i = 0, j = 0; i < treeCount && j < treeCount*2; j++){
+            float x = terrainPos.x + (float)rand.NextDouble()*terrainSize.x;
+            float z = terrainPos.z + (float)rand.NextDouble()*terrainSize.z;
+            Vector2 randomPos = new Vector2(x,z);
+            bool isValid = true;
+            foreach(var coords in treeCoords){
+                if(isPointInPolygon(randomPos,coords)){
+                    isValid = false;
+                    break;
+                }
+            }
+            if(!isValid){
+                continue;
+            }
+            bool tooClose = false;
+            foreach(Vector2 tree in treePositions){
+                if(Vector2.Distance(randomPos, tree) < minTreeDistance){
+                    tooClose = true;
+                    break;
+                }
+            }
+            if(!tooClose){
+                treePositions.Add(randomPos);
+                i++;
+            }
+        }
+        spawnTreesOnTerrain(treePositions,2);
     }
     /*
         Spawn point objects on terrain
@@ -2365,7 +2408,7 @@ void generateWaterLine(List<Vector2> coords, float width){
                 delSymbols.Add(symbol);
             }
         }
-        float colDist = 3f;
+        float colDist = 1.5f;
         foreach(TreeInstance tree in data.treeInstances){
             Vector3 treeWorldPos = Vector3.Scale(tree.position, data.size)+terrain.transform.position;
             bool delete = false;
@@ -2485,6 +2528,7 @@ void generateWaterLine(List<Vector2> coords, float width){
         if(loadingBar != null)
             loadingBar.fillAmount = 0.6f;
         paintTerrain();
+        generateBackgroundTrees();
         yield return null;
         if(loadingBar != null)
             loadingBar.fillAmount = 0.7f;
