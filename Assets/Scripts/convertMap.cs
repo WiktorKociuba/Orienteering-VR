@@ -2378,7 +2378,7 @@ void generateWaterLine(List<Vector2> coords, float width){
             }
         }
         if(unknownCoords.Count > 0){
-            string errorText = $"Control(s) {string.Join(", ",unknownCoords)} might not be in the intended place. \n Consider changing the position a little bit.";
+            string errorText = $"Control(s) {string.Join(", ",unknownCoords)} might not be accessible. \n Consider changing the position a little bit.";
             StartCoroutine(displayError(errorText));
         }
         Vector3 spawnPos = new Vector3(startPos.x+3f,0,startPos.z);
@@ -2553,61 +2553,12 @@ void generateWaterLine(List<Vector2> coords, float width){
         foreach(MapSymbol symbol in omap)
         {
             isomSymbol refSym = isomSet[int.Parse(symbol.id)];
-            int id = int.Parse(symbol.id);
-            if((id == 74) || (id >= 80 && id <= 92)){
+            int id = refSym.isomId;
+            if(refSym.symbolObject == null)
                 continue;
-            }
-            if(id == 46){
-                continue;
-            }
-            if(id == 47){
-                continue;
-            }
             objcount++;
             if(objcount %50 == 0)
                 yield return null;
-            switch(isomSet[int.Parse(symbol.id)].isomId){
-                case 104:
-                    continue;
-                case 105:
-                    continue;
-                case 106:
-                    continue;
-                case 107:
-                    continue;
-                case 108:
-                    continue;
-                case 109:
-                    continue;
-                case 110:
-                    continue;
-                case 111:
-                    continue;
-                case 112:
-                    continue;
-                case 113:
-                    continue;
-                case 114:
-                    continue;
-                case 115:
-                    continue;
-                case 1051:
-                    continue;
-                case 303:
-                    continue;
-                case 311:
-                    continue;
-                case 312:
-                    continue;
-                case 313:
-                    continue;
-                case 304:
-                    continue;
-                case 305:
-                    continue;
-                case 306:
-                    continue;
-            }
             if (refSym.type == 0)
             {
                 CreatePointObject(refSym, symbol.coords);
@@ -2619,7 +2570,7 @@ void generateWaterLine(List<Vector2> coords, float width){
             }
             if (refSym.type == 2)
             {
-                //CreateAreaObject(refSym, symbol.coords);
+                CreateAreaObject(refSym, symbol.coords);
             }
         }
         yield return null;
