@@ -17,7 +17,6 @@ public class convertMap : MonoBehaviour
     List<MapSymbol> courseSym;
     float minX = float.MaxValue, minY = float.MaxValue, maxY = float.MinValue, maxX = float.MinValue;
     Terrain terrain;
-    public Material defaultMaterial;
     public class isomSymbol
     {
         public int id; // omap ID
@@ -63,6 +62,7 @@ public class convertMap : MonoBehaviour
     GameObject prominentLandformFeature; //115
     GameObject impassableCliff; //201
     GameObject cliff; //202
+    [Header("Prefabs")]
     public GameObject rockyPit; //2031
     public GameObject dangerousPit; //2032
     public GameObject Boulder; //204
@@ -169,8 +169,10 @@ public class convertMap : MonoBehaviour
     public TerrainLayer waterLayer;
     public TerrainLayer pathLayer;
     public TerrainLayer asphaltLayer;
+    [Header("Map Paths")]
     public string filePath;
     public string coursePath;
+    public string mapImagePath;
     public class MapSymbol
     {
         public string id;
@@ -1394,6 +1396,7 @@ public class convertMap : MonoBehaviour
     /*
         Tree painting
     */
+    [Header("Tree Settings")]
     public GameObject[] treePrefabs;
     TreePrototype[] treePrototypes;
     public float treeBillboardDistance = 50f;
@@ -1592,6 +1595,7 @@ public class convertMap : MonoBehaviour
     /*
         Setup the grass
     */
+    [Header("Grass Settings")]
     public SO_GrassSettings grassSettings;
     public SO_GrassToolSettings grassToolSettings;
     public bool generateGrass = true;
@@ -1732,6 +1736,7 @@ public class convertMap : MonoBehaviour
     /*
         Slow zones setup
     */
+    [Header("Slow Zones Settings")]
     public GameObject vegetationSlowSZ;
     public GameObject vegetationWalkSZ;
     public GameObject vegetationFightSZ;
@@ -2124,6 +2129,7 @@ public class convertMap : MonoBehaviour
     /*
         Generate water
     */
+    [Header("Water Settings")]
     public GameObject waterPlane;
     GameObject waterParent;
     void generateWaterPlane(Vector2 coords, float radius){
@@ -2257,6 +2263,7 @@ void generateWaterLine(List<Vector2> coords, float width){
     /*
         Setup the course
     */
+    [Header("Course Settings")]
     public GameObject controlPrefab;
     public GameObject PC;
     public GameObject VR;
@@ -2466,6 +2473,40 @@ void generateWaterLine(List<Vector2> coords, float width){
             }
         }
     }
+    /*
+        Set the map to new image
+    */
+    [Header("Map Object Settings")]
+    public GameObject mapObjectPC;
+    public GameObject mapObjectVR;
+    private float mapScale = 0.0001f;
+    private Material mapMaterial;
+    private Texture2D mapTexture;
+    void applyMap(){
+        if(string.IsNullOrEmpty(mapImagePath)){
+            Debug.LogWarning("Map image is empty");
+            return;
+        }
+        if(File.Exists(mapImagePath)){
+            byte[] imageData = File.ReadAllBytes(mapImagePath);
+            mapTexture = new Texture2D(2,2);
+            if(mapTexture.LoadImage(imageData)){
+                mapMaterial = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                mapMaterial.mainTexture = mapTexture;
+                mapObjectPC.GetComponent<Renderer>().material = mapMaterial;
+                mapObjectVR.GetComponent<Renderer>().material = mapMaterial;
+                float width = mapTexture.width;
+                float height = mapTexture.height;
+                Vector3 newScale = new Vector3(
+                    width*mapScale,
+                    height*mapScale,
+                    0.01f
+                );
+                mapObjectPC.transform.localScale = newScale;
+                mapObjectVR.transform.localScale = newScale;
+            }
+        }
+    }
     // ISOM 2017 symbol set (for now)
     IEnumerator parseOMAP()
     {
@@ -2546,6 +2587,7 @@ void generateWaterLine(List<Vector2> coords, float width){
         if(loadingBar != null)
             loadingBar.fillAmount = 0.7f;
         spawnContorls();
+        applyMap();
         yield return null;
         if(loadingBar != null)
             loadingBar.fillAmount = 0.8f;
@@ -2809,6 +2851,7 @@ void generateWaterLine(List<Vector2> coords, float width){
     /*
         Scene loading
     */
+    [Header("Loading Screen Settings")]
     public GameObject loadingScreen;
     public Image loadingBar;
     public GameObject player;
