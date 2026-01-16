@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using SimpleFileBrowser;
+using System.Linq;
+using System;
+using TMPro;
 
 public class clickMenuPC : MonoBehaviour
 {
@@ -27,6 +30,11 @@ public class clickMenuPC : MonoBehaviour
     public GameObject screenSettings;
     public GameObject soundSettingsButton;
     public GameObject graphicSettingsButton;
+    public GameObject generateMapMenu;
+    public TextMeshProUGUI generateMapErr;
+    public TextMeshProUGUI mapFileStr;
+    public TextMeshProUGUI courseFileStr;
+    public TextMeshProUGUI imageFileStr;
     public void OnClick()
     {
         if (btn != null)
@@ -152,6 +160,7 @@ public class clickMenuPC : MonoBehaviour
                 FileBrowser.ShowLoadDialog(
                     (paths) => {
                         routeManager.mapFilePath = paths[0];
+                        mapFileStr.text = paths[0];
                     },
                     () => {Debug.Log("Cancelled");},
                     FileBrowser.PickMode.Files,
@@ -169,6 +178,7 @@ public class clickMenuPC : MonoBehaviour
                 FileBrowser.ShowLoadDialog(
                     (paths) => {
                         routeManager.courseFilePath = paths[0];
+                        courseFileStr.text = paths[0];
                     },
                     () => {Debug.Log("Cancelled");},
                     FileBrowser.PickMode.Files,
@@ -186,6 +196,7 @@ public class clickMenuPC : MonoBehaviour
                 FileBrowser.ShowLoadDialog(
                     (paths) => {
                         routeManager.mapImagePath = paths[0];
+                        imageFileStr.text = paths[0];
                     },
                     () => {Debug.Log("Cancelled");},
                     FileBrowser.PickMode.Files,
@@ -195,6 +206,24 @@ public class clickMenuPC : MonoBehaviour
                     "Select Map Image",
                     "Select" 
                 );
+            }
+            else if(btn.name == "generateMap"){
+                string errorMsg = "";
+                if(routeManager.mapFilePath == null){
+                    errorMsg = errorMsg + "Map File Path not set! ";
+                }
+                if(routeManager.courseFilePath == null){
+                    errorMsg = errorMsg +"Course File Path not set! ";
+                }
+                if(routeManager.mapImagePath == null){
+                    errorMsg = errorMsg + "Map Image Path not set! ";
+                }
+                if(errorMsg != ""){
+                    generateMapErr.text = errorMsg;
+                    btn = null;
+                    return;
+                }
+                StartCoroutine(loadSceneAsync("generatedMap"));
             }
         }
         btn = null;

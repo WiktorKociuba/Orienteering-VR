@@ -693,6 +693,9 @@ public class convertMap : MonoBehaviour
         temp = new isomSymbol();
         temp.id = 167; temp.isomId = 799; temp.type = 0; temp.symbolObject = null;
         isomSet[167] = temp;
+        filePath = routeManager.mapFilePath;
+        coursePath = routeManager.courseFilePath;
+        mapImagePath = routeManager.mapImagePath;
         StartCoroutine(generateTerrain());
     }
     void getMapSize(){
