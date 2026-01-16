@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using SimpleFileBrowser;
 
 public class clickMenuPC : MonoBehaviour
 {
@@ -143,6 +144,57 @@ public class clickMenuPC : MonoBehaviour
             else if(btn.name == "tutorial")
             {
                 StartCoroutine(loadSceneAsync("tutorial"));
+            }
+            else if(btn.name == "loadMapFile")
+            {
+                FileBrowser.SetFilters(true, new FileBrowser.Filter("OMAP", ".omap"));
+                FileBrowser.SetDefaultFilter(".omap");
+                FileBrowser.ShowLoadDialog(
+                    (paths) => {
+                        routeManager.mapFilePath = paths[0];
+                    },
+                    () => {Debug.Log("Cancelled");},
+                    FileBrowser.PickMode.Files,
+                    false,
+                    null,
+                    null,
+                    "Select Map File",
+                    "Select"
+                );
+            }
+            else if(btn.name == "loadCourseFile")
+            {
+                FileBrowser.SetFilters(true, new FileBrowser.Filter("OMAP",".omap"));
+                FileBrowser.SetDefaultFilter(".omap");
+                FileBrowser.ShowLoadDialog(
+                    (paths) => {
+                        routeManager.courseFilePath = paths[0];
+                    },
+                    () => {Debug.Log("Cancelled");},
+                    FileBrowser.PickMode.Files,
+                    false,
+                    null,
+                    null,
+                    "Select Course File",
+                    "Select"
+                );
+            }
+            else if(btn.name == "loadMapImage")
+            {
+                FileBrowser.SetFilters(true, new FileBrowser.Filter("Image",".png",".jpg",".jpeg"));
+                FileBrowser.SetDefaultFilter(".png");
+                FileBrowser.ShowLoadDialog(
+                    (paths) => {
+                        routeManager.mapImagePath = paths[0];
+                    },
+                    () => {Debug.Log("Cancelled");},
+                    FileBrowser.PickMode.Files,
+                    false,
+                    null,
+                    null,
+                    "Select Map Image",
+                    "Select" 
+                );
             }
         }
         btn = null;
