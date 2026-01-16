@@ -35,6 +35,7 @@ public class clickMenuPC : MonoBehaviour
     public TextMeshProUGUI mapFileStr;
     public TextMeshProUGUI courseFileStr;
     public TextMeshProUGUI imageFileStr;
+    public GameObject mapGeneration;
     public void OnClick()
     {
         if (btn != null)
@@ -46,6 +47,7 @@ public class clickMenuPC : MonoBehaviour
                 settingsButton.SetActive(false);
                 demoMap.gameObject.SetActive(true);
                 map1.gameObject.SetActive(true);
+                mapGeneration.SetActive(true);
             }
             else if (btn.name == "Exit")
             {
@@ -55,6 +57,7 @@ public class clickMenuPC : MonoBehaviour
             {
                 map1.gameObject.SetActive(false);
                 demoMap.gameObject.SetActive(false);
+                mapGeneration.SetActive(false);
                 level1.gameObject.SetActive(true);
             }
             else if(btn.name == "map"){
@@ -76,6 +79,7 @@ public class clickMenuPC : MonoBehaviour
             {
                 map1.gameObject.SetActive(false);
                 demoMap.gameObject.SetActive(false);
+                mapGeneration.SetActive(false);
                 map1course1.gameObject.SetActive(true);
                 map1course2.gameObject.SetActive(true);
                 nightmode.gameObject.SetActive(true);
@@ -145,6 +149,7 @@ public class clickMenuPC : MonoBehaviour
             {
                 map1.gameObject.SetActive(false);
                 demoMap.gameObject.SetActive(false);
+                generateMapMenu.SetActive(false);
                 start.gameObject.SetActive(true);
                 settingsButton.SetActive(true);
                 exit.gameObject.SetActive(true);
@@ -224,6 +229,12 @@ public class clickMenuPC : MonoBehaviour
                     return;
                 }
                 StartCoroutine(loadSceneAsync("generatedMap"));
+            }
+            else if(btn.name == "mapGeneration"){
+                demoMap.gameObject.SetActive(false);
+                map1.gameObject.SetActive(false);
+                mapGeneration.SetActive(false);
+                generateMapMenu.SetActive(true);
             }
         }
         btn = null;

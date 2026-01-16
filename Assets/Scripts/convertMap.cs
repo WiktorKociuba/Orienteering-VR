@@ -2482,7 +2482,7 @@ void generateWaterLine(List<Vector2> coords, float width){
     [Header("Map Object Settings")]
     public GameObject mapObjectPC;
     public GameObject mapObjectVR;
-    private float mapScale = 0.0001f;
+    private float mapScale = 0.0002f;
     private Material mapMaterial;
     private Texture2D mapTexture;
     void applyMap(){
