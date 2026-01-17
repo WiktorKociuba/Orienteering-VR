@@ -2860,8 +2860,21 @@ void generateWaterLine(List<Vector2> coords, float width){
     public Image loadingBar;
     public GameObject player;
     public GameObject fadeToBlack;
+    public GameObject loadingScreenVr;
+    public Image loadingBarVr;
+    public GameObject playerVr;
+    public GameObject fadeToBlackVr;
+    public GameObject vrObj;
+    
     IEnumerator generateTerrain()
     {
+        if(isVr){
+            loadingScreen = loadingScreenVr;
+            loadingBar = loadingBarVr;
+            player = playerVr;
+            fadeToBlack = fadeToBlackVr;
+            vrObj.SetActive(false);
+        }
         if(loadingScreen != null)
             loadingScreen.SetActive(true);
         yield return parseOMAP();
@@ -2872,6 +2885,7 @@ void generateWaterLine(List<Vector2> coords, float width){
         yield return new WaitForSecondsRealtime(1f);
         fadeToBlack.SetActive(false);
         player.SetActive(true);
+        vrObj.SetActive(true);
         yield return new WaitForSecondsRealtime(5f);
         popup.SetActive(false);
     }

@@ -17,6 +17,7 @@ public class Checkpoints : MonoBehaviour
     [Header("Player")]
     public GameObject player;
     public clickMenuPC menuPC;
+    public lineRendererSettings lineRendererVr;
 
     [Header("Tutorial")]
     public bool ifTutorial = false;
@@ -70,7 +71,10 @@ public class Checkpoints : MonoBehaviour
                     punchedControl = "Finish";
                     print($"Finished, time: {time}");
                     finished = true;
-                    StartCoroutine(menuPC.loadSceneAsync("mainMenu"));
+                    if(menuPC != null)
+                        StartCoroutine(menuPC.loadSceneAsync("mainMenu"));
+                    if(lineRendererVr != null)
+                        StartCoroutine(lineRendererVr.loadSceneAsync("mainMenu"));
                 }
             }
             for (int i = 0; i < checkpoints.Length; i++)
