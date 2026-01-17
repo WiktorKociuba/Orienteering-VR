@@ -382,6 +382,8 @@ public class lineRendererSettings : MonoBehaviour
     public GameObject loadingScreen;
     public Image loadingBar;
     public GameObject fadeToBlack;
+    public destroyPlayer destroyPla;
+    public GameObject cam;
     public IEnumerator loadSceneAsync(string scene, int route = -1){
         fadeToBlack.SetActive(true);
         yield return new WaitForSecondsRealtime(1f);

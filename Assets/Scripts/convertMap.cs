@@ -2272,6 +2272,7 @@ void generateWaterLine(List<Vector2> coords, float width){
     public GameObject VR;
     private Vector3 startPos;
     public GameObject VRObjects;
+    public bool isVr = false;
     void spawnContorls(){
         MapSymbol start = new MapSymbol(), finish = new MapSymbol();
         List<MapSymbol> controls = new List<MapSymbol>(), controlNumbers = new List<MapSymbol>();
@@ -2300,11 +2301,11 @@ void generateWaterLine(List<Vector2> coords, float width){
         }
         GameObject coursePar = new GameObject("Course Parent");
         Checkpoints checkpoints = null;
-        if(PlayerPCGO.activeInHierarchy){
+        if(!isVr){
             checkpoints = PlayerPCGO.GetComponent<Checkpoints>();
         }
-        else if(PlayerVRGO.activeInHierarchy){
-            checkpoints = PlayerVRGO.GetComponent<Checkpoints>();
+        else if(isVr){
+            checkpoints = VR.GetComponent<Checkpoints>();
         }
         GameObject[] controlsObj;
         if(isSimple){
@@ -2820,7 +2821,7 @@ void generateWaterLine(List<Vector2> coords, float width){
         symbol.id = id;
         float rotation = 0;
         if(symbolNode.Attributes["rotation"] != null)
-            rotation = float.Parse(symbolNode.Attributes["rotation"].Value);
+            rotation = float.Parse(symbolNode.Attributes["rotation"].Value, System.Globalization.CultureInfo.InvariantCulture);
         symbol.rotation = rotation;
         XmlNode coordsNode = symbolNode.SelectSingleNode("omap:coords", nsmgr);
         if (coordsNode != null)
