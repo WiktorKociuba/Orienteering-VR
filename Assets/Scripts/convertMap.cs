@@ -1747,8 +1747,9 @@ public class convertMap : MonoBehaviour
     public MovePlayerPC PlayerPC;
     public GameObject PlayerVRGO;
     public GameObject PlayerPCGO;
+    public GameObject barrier;
     GameObject slowZonePar;
-    void spawnSlowZones(List<Vector2> coords, int vegeType/*0-Slow;1-Walk;2-Fight*/){
+    void spawnSlowZones(List<Vector2> coords, int vegeType/*0-Slow;1-Walk;2-Fight;3-Barrier*/){
         if(slowZonePar == null){
             slowZonePar = new GameObject("SlowZones");
         }
@@ -1757,6 +1758,7 @@ public class convertMap : MonoBehaviour
             case 0: slowZonePrefab = vegetationSlowSZ; break;
             case 1: slowZonePrefab = vegetationWalkSZ; break;
             case 2: slowZonePrefab = vegetationFightSZ; break;
+            case 3: slowZonePrefab = barrier; break;
             default: Debug.LogWarning("No vegetype"); return;
         }
         MeshFilter meshFilter = slowZonePrefab.GetComponent<MeshFilter>();
@@ -1781,6 +1783,9 @@ public class convertMap : MonoBehaviour
             GameObject slowZoneObj = Instantiate(slowZonePrefab, position, rotation, slowZonePar.transform);
             slowZoneObj.name = $"SlowZoneSegment_{i}_vegeType_{vegeType}";
             slowZoneObj.transform.localScale = new Vector3(scaleX, scaleY, scaleZ);
+            if(vegeType == 3){
+                continue;
+            }
             slowMovement slowScript = slowZoneObj.AddComponent<slowMovement>();
             slowScript.movePlayer1 = PlayerVR;
             slowScript.movePlayerPC1 = PlayerPC;
@@ -2210,6 +2215,7 @@ void generateWaterLine(List<Vector2> coords, float width){
             Debug.LogWarning("Check water prefab");
             return;
         }
+        spawnSlowZones(coords,3);
         Bounds bounds = meshFilter.sharedMesh.bounds;
         float baseLength = bounds.size.z;
         float baseWidth = bounds.size.x;
@@ -2627,6 +2633,12 @@ void generateWaterLine(List<Vector2> coords, float width){
         if(loadingBar != null)
             loadingBar.fillAmount = 0.9f;
         setupGrassSystem();
+        spawnSlowZones(new List<Vector2>{
+            new Vector2(minX,minY),
+            new Vector2(minX,maxY),
+            new Vector2(maxX,maxY),
+            new Vector2(maxX,minY)
+        },3);
         yield return null;
         if(loadingBar != null)
             loadingBar.fillAmount = 1f;
