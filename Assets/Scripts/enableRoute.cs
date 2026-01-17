@@ -22,14 +22,17 @@ public class enableRoute : MonoBehaviour
     {
         if(loadingScreen !=null)
             loadingScreen.SetActive(true);
-        fadeToBlack.SetActive(true);
+        if(fadeToBlack != null)
+            fadeToBlack.SetActive(true);
         yield return new WaitForSecondsRealtime(1f);
         if(loadingScreen != null)
             loadingScreen.SetActive(false);
         routes[routeManager.SelectedRouteIndex].SetActive(true);
         yield return new WaitForSecondsRealtime(1f);
-        loadCam.SetActive(false);
-        fadeToBlack.SetActive(false);
+        if(loadCam != null)
+            loadCam.SetActive(false);
+        if(fadeToBlack != null)
+            fadeToBlack.SetActive(false);
         if (!routeManager.SelectedTime)
         {
             RenderSettings.skybox = Day;
