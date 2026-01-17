@@ -46,6 +46,10 @@ public class lineRendererSettings : MonoBehaviour
     public TextMeshProUGUI courseFileStr;
     public TextMeshProUGUI imageFileStr;
     public GameObject mapGeneration;
+    public List<GameObject> tutorialPages;
+    public GameObject tutorialObj;
+    public GameObject enableTutorial;
+    private int tutorialIndex = 0;
     private float lastClickTime = 0f;
     private float clickCooldown = 0.2f;
     Vector3[] points;
@@ -87,6 +91,7 @@ public class lineRendererSettings : MonoBehaviour
                 start.gameObject.SetActive(false);
                 exit.gameObject.SetActive(false);
                 settingsButton.SetActive(false);
+                enableTutorial.SetActive(false);
                 demoMap.gameObject.SetActive(true);
                 map1.gameObject.SetActive(true);
                 mapGeneration.SetActive(true);
@@ -149,6 +154,7 @@ public class lineRendererSettings : MonoBehaviour
             {
                 start.gameObject.SetActive(false);
                 exit.gameObject.SetActive(false);
+                enableTutorial.SetActive(false);
                 settingsButton.SetActive(false);
                 settingsMenu.SetActive(true);
                 soundSettings.SetActive(true);
@@ -169,6 +175,7 @@ public class lineRendererSettings : MonoBehaviour
                 soundSettings.SetActive(false);
                 settingsMenu.SetActive(false);
                 start.gameObject.SetActive(true);
+                enableTutorial.SetActive(true);
                 settingsButton.SetActive(true);
                 exit.gameObject.SetActive(true);
             }
@@ -192,6 +199,8 @@ public class lineRendererSettings : MonoBehaviour
                 map1.gameObject.SetActive(false);
                 demoMap.gameObject.SetActive(false);
                 generateMapMenu.SetActive(false);
+                mapGeneration.SetActive(false);
+                enableTutorial.SetActive(true);
                 start.gameObject.SetActive(true);
                 settingsButton.SetActive(true);
                 exit.gameObject.SetActive(true);
@@ -277,6 +286,46 @@ public class lineRendererSettings : MonoBehaviour
                 map1.gameObject.SetActive(false);
                 mapGeneration.SetActive(false);
                 generateMapMenu.SetActive(true);
+            }
+            //tutorial
+            else if(btn.name == "enableTutorial"){
+                start.gameObject.SetActive(false);
+                settingsButton.SetActive(false);
+                exit.gameObject.SetActive(false);
+                enableTutorial.SetActive(false);
+                tutorialIndex = 0;
+                tutorialObj.SetActive(true);
+                tutorialPages[0].SetActive(true);
+            }
+            else if(btn.name == "goBack"){
+                tutorialPages[tutorialIndex].SetActive(false);
+                tutorialIndex--;
+                if(tutorialIndex < 0){
+                    tutorialPages[0].SetActive(true);
+                    tutorialObj.SetActive(false);
+                    start.gameObject.SetActive(true);
+                    settingsButton.SetActive(true);
+                    exit.gameObject.SetActive(true);
+                    enableTutorial.SetActive(true);
+                }
+                else{
+                    tutorialPages[tutorialIndex].SetActive(true);
+                }
+            }
+            else if(btn.name == "goForward"){
+                tutorialPages[tutorialIndex].SetActive(false);
+                tutorialIndex++;
+                if(tutorialIndex >= tutorialPages.Count){
+                    tutorialPages[0].SetActive(true);
+                    tutorialObj.SetActive(false);
+                    start.gameObject.SetActive(true);
+                    settingsButton.SetActive(true);
+                    exit.gameObject.SetActive(true);
+                    enableTutorial.SetActive(true);
+                }
+                else{
+                    tutorialPages[tutorialIndex].SetActive(true);
+                }
             }
         }
     }
