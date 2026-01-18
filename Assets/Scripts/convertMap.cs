@@ -699,23 +699,9 @@ public class convertMap : MonoBehaviour
         mapImagePath = routeManager.mapImagePath;
         StartCoroutine(generateTerrain());
     }
-    void getMapSize(){
-        foreach(MapSymbol symbol in omap){
-            foreach (Vector2 coord in symbol.coords){
-                if(coord.x > maxX)
-                    maxX = coord.x;
-                if(coord.x < minX)
-                    minX = coord.x;
-                if(coord.y > maxY)
-                    maxY = coord.y;
-                if(coord.y < minY)
-                    minY = coord.y;
-            }
-        }
-    }
     int calculateHeightmapResolution(){
         float maxDimension = Mathf.Max(maxX-minX, maxY-minY);
-        int[] validResolutions = {33,65,129,257,513,1025,2049,4097,8193};
+        int[] validResolutions = {33,65,129,257,513,1025,2049,4097};
         float targetScale = 2f;
         int targetResolution = Mathf.CeilToInt(maxDimension/targetScale);
         int bestRes = validResolutions[0];
@@ -729,14 +715,14 @@ public class convertMap : MonoBehaviour
         return 513;
     }
     void generateMapBounds(){
-        getMapSize();
+        System.Diagnostics.Stopwatch timer = System.Diagnostics.Stopwatch.StartNew();
         TerrainData terrainData = new TerrainData();
         terrainData.heightmapResolution = calculateHeightmapResolution();
-        terrainData.SetDetailResolution(calculateHeightmapResolution()-1,16);
         terrainData.size = new Vector3(math.abs(maxX-minX), 0, math.abs(maxY-minY));
         GameObject terrainObject = Terrain.CreateTerrainGameObject(terrainData);
         terrainObject.transform.position = new Vector3(minX, 0, minY);
         terrain = terrainObject.GetComponent<Terrain>();
+        print($"Time {timer.ElapsedMilliseconds}ms");
     }
     bool isContourClosed(MapSymbol contour, float threshold = 1f){
         if(contour.coords.Count < 3)
@@ -1248,10 +1234,34 @@ public class convertMap : MonoBehaviour
         }
         return -1;
     }
+    public class PolygonBounds{
+        public Vector2 min;
+        public Vector2 max;
+        public List<Vector2> coords;
+        public PolygonBounds(List<Vector2> polygonCoords){
+            coords = polygonCoords;
+            min = new Vector2(float.MaxValue, float.MaxValue);
+            max = new Vector2(float.MinValue, float.MinValue);
+            foreach(Vector2 coord in coords){
+                min.x = Mathf.Min(min.x,coord.x);
+                min.y = Mathf.Min(min.y,coord.y);
+                max.x = Mathf.Max(max.x,coord.x);
+                max.y = Mathf.Max(max.y,coord.y);
+            }
+        }
+        public bool IsInBounds(Vector2 point){
+            return point.x >= min.x && point.x <= max.x && point.y >= min.y && point.y <= max.y;
+        }
+    }
     void paintArea(float[,,] alphamap, List<Vector2> coords, int layerIndex, int width, int height){
         TerrainData data = terrain.terrainData;
-        for(int y = 0; y < height; y++){
-            for(int x = 0; x < width; x++){
+        PolygonBounds bounds = new PolygonBounds(coords);
+        int minXl = Mathf.Max(0, Mathf.FloorToInt((bounds.min.x - minX) / (maxX - minX) * (width - 1)));
+        int maxXl = Mathf.Min(width - 1, Mathf.CeilToInt((bounds.max.x - minX) / (maxX - minX) * (width - 1)));
+        int minYl = Mathf.Max(0, Mathf.FloorToInt((bounds.min.y - minY) / (maxY - minY) * (height - 1)));
+        int maxYl = Mathf.Min(height - 1, Mathf.CeilToInt((bounds.max.y - minY) / (maxY - minY) * (height - 1)));
+        for(int y = minYl; y <= maxYl; y++){
+            for(int x = minXl; x <= maxXl; x++){
                 Vector2 worldPos = new Vector2(
                     minX + (float)x / (width-1)*(maxX-minX),
                     minY + (float)y / (height-1)*(maxY-minY)
@@ -2928,6 +2938,12 @@ void generateWaterLine(List<Vector2> coords, float width){
         XmlNode textNode = symbolNode.SelectSingleNode("omap:text", nsmgr);
         if(textNode != null){
             symbol.text = textNode.InnerText;
+        }
+        foreach(Vector2 coord in symbol.coords){
+            minX = Mathf.Min(minX, coord.x);
+            maxX = Mathf.Max(maxX, coord.x);
+            minY = Mathf.Min(minY, coord.y);
+            maxY = Mathf.Max(maxY, coord.y);
         }
         return symbol;
     }
