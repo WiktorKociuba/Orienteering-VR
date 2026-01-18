@@ -713,11 +713,26 @@ public class convertMap : MonoBehaviour
             }
         }
     }
+    int calculateHeightmapResolution(){
+        float maxDimension = Mathf.Max(maxX-minX, maxY-minY);
+        int[] validResolutions = {33,65,129,257,513,1025,2049,4097,8193};
+        float targetScale = 2f;
+        int targetResolution = Mathf.CeilToInt(maxDimension/targetScale);
+        int bestRes = validResolutions[0];
+        foreach(int res in validResolutions){
+            if(res>=targetResolution){
+                bestRes = res;
+                break;
+            }
+            bestRes = res;
+        }
+        return bestRes;
+    }
     void generateMapBounds(){
         getMapSize();
         TerrainData terrainData = new TerrainData();
-        terrainData.heightmapResolution = 513;
-        terrainData.SetDetailResolution(1024,16);
+        terrainData.heightmapResolution = calculateHeightmapResolution();
+        terrainData.SetDetailResolution(calculateHeightmapResolution()-1,16);
         terrainData.size = new Vector3(math.abs(maxX-minX), 0, math.abs(maxY-minY));
         GameObject terrainObject = Terrain.CreateTerrainGameObject(terrainData);
         terrainObject.transform.position = new Vector3(minX, 0, minY);
@@ -1671,7 +1686,7 @@ public class convertMap : MonoBehaviour
         GameObject renderMapObj = new GameObject("TerrainRenderer");
         RenderTerrainMap renderMap = renderMapObj.gameObject.AddComponent<RenderTerrainMap>();
         renderMap.camToDrawWith = grassRendererCamera;
-        renderMap.resolution = 512;
+        renderMap.resolution = calculateHeightmapResolution()-1;
         renderMap.adjustScaling = 2.5f;
         renderMap.repeatRate = 5f;
         Type renderMapType = typeof(RenderTerrainMap);
@@ -1795,19 +1810,19 @@ public class convertMap : MonoBehaviour
             switch(vegeType){
                 case 0: 
                     slowScript.slowZone = 1;
-                    slowScript.newSpeed = 4;
+                    slowScript.newSpeed = 6;
                     break;
                 case 1:
                     slowScript.slowZone = 2;
-                    slowScript.newSpeed = 3;
+                    slowScript.newSpeed = 5;
                     break;
                 case 2:
                     slowScript.slowZone = 3;
-                    slowScript.newSpeed = 2;
+                    slowScript.newSpeed = 4;
                     break;
                 default:
                     slowScript.slowZone = 1;
-                    slowScript.newSpeed = 4;
+                    slowScript.newSpeed = 6;
                     break;
             }
         }
@@ -2490,7 +2505,7 @@ void generateWaterLine(List<Vector2> coords, float width){
     [Header("Map Object Settings")]
     public GameObject mapObjectPC;
     public GameObject mapObjectVR;
-    private float mapScale = 0.0002f;
+    private float mapScale = 0.0001f;
     private Material mapMaterial;
     private Texture2D mapTexture;
     void applyMap(){
