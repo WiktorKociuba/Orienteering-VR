@@ -2054,19 +2054,29 @@ public class convertMap : MonoBehaviour
     }
     void changeHeightOfPoint(List<pointLfFeature> feat, float[,] heights, int res){
         float radius = 3f;
-        for(int y = 0; y < res; y++){
-            for(int x = 0; x < res; x++){
-                Vector2 worldPos = new Vector2(
-                    minX + (float)x / (res-1)*(maxX-minX),
-                    minY + (float)y / (res-1)*(maxY-minY)
-                );
-                foreach(var ft in feat){
+        float invResMinusOne = 1f/(res-1);
+        float worldRangeX = maxX-minX;
+        float worldRangeY = maxY-minY;
+        foreach(var ft in feat){
+            int centerX = Mathf.RoundToInt((ft.coords.x-minX)/worldRangeX*(res-1));
+            int centerY = Mathf.RoundToInt((ft.coords.y-minY)/worldRangeY*(res-1));
+            int pixelRadius = Mathf.CeilToInt(radius/worldRangeX*(res-1));
+            int startX = Mathf.Max(0, centerX-pixelRadius);
+            int endX = Mathf.Min(res-1,centerX+pixelRadius);
+            int startY = Mathf.Max(0,centerY-pixelRadius);
+            int endY = Mathf.Min(res-1,centerY+pixelRadius);
+            for(int y = startY; y < endY; y++){
+                for(int x = startX; x < endX; x++){
+                    Vector2 worldPos = new Vector2(
+                        minX + x * invResMinusOne * worldRangeX,
+                        minY + y * invResMinusOne * worldRangeY
+                    );
                     float dist = Vector2.Distance(worldPos, ft.coords);
                     if(dist < radius){
-                        float factor = 1f-(dist/radius);
-                        factor = Mathf.SmoothStep(0,1,factor);
-                        heights[y,x] += ft.elevChange*factor;
-                        heights[y,x] = Mathf.Max(0,heights[y,x]);
+                        float factor = 1f - (dist / radius);
+                        factor = Mathf.SmoothStep(0, 1, factor);
+                        heights[y, x] += ft.elevChange * factor;
+                        heights[y, x] = Mathf.Max(0, heights[y, x]);
                     }
                 }
             }
@@ -2085,32 +2095,51 @@ public class convertMap : MonoBehaviour
     }
     void changeHeightOfLine(List<lineLfFeature> feats, float[,] heights, int res){
         float lineWidth = 2f;
-        for(int y = 0; y < res; y++){
-            for(int x = 0; x < res; x++){
-                Vector2 worldPos = new Vector2(
-                    minX + (float)x / (res-1)*(maxX-minX),
-                    minY + (float)y / (res-1)*(maxY-minY)
-                );
-                foreach(var ft in feats){
-                    if(ft.id == 306){
-                        lineWidth = 1f;
-                    }
-                    else if(ft.id == 304){
-                        lineWidth = 3f;
-                    }
-                    else{
-                        lineWidth = 2f;
-                    }
+        float invResMinusOne = 1f / (res - 1);
+        float worldRangeX = maxX -minX;
+        float worldRangeY = maxY -minY;
+        foreach(var ft in feats){
+            if(ft.id == 306){
+                lineWidth = 1f;
+            }
+            else if(ft.id == 304){
+                lineWidth = 3f;
+            }
+            else{
+                lineWidth = 2f;
+            }
+            float minXl = float.MaxValue, maxXl = float.MinValue;
+            float minYl = float.MaxValue, maxYl = float.MinValue;
+            foreach(var coord in ft.coords){
+                minXl = Mathf.Min(minXl, coord.x);
+                maxXl = Mathf.Max(maxXl, coord.x);
+                minYl = Mathf.Min(minYl, coord.y);
+                maxYl = Mathf.Max(maxYl, coord.y);
+            }
+            minXl -= lineWidth;
+            maxXl += lineWidth;
+            minYl -= lineWidth;
+            maxYl += lineWidth;
+            int startX = Mathf.Max(0, Mathf.FloorToInt((minXl - minX) / worldRangeX * (res - 1)));
+            int endX = Mathf.Min(res - 1, Mathf.CeilToInt((maxXl - minX) / worldRangeX * (res - 1)));
+            int startY = Mathf.Max(0, Mathf.FloorToInt((minYl - minY) / worldRangeY * (res - 1)));
+            int endY = Mathf.Min(res - 1, Mathf.CeilToInt((maxYl - minY) / worldRangeY * (res - 1)));
+            for(int y = startY; y <= endY; y++){
+                for(int x = startX; x <= endX; x++){
+                    Vector2 worldPos = new Vector2(
+                        minX+x*invResMinusOne*worldRangeX,
+                        minY+y*invResMinusOne*worldRangeY
+                    );
                     float minDist = float.MaxValue;
-                    for(int i = 0; i < ft.coords.Count-1; i++){
-                        float dist = distancePointToSegment(worldPos,ft.coords[i],ft.coords[i+1]);
-                        minDist = Mathf.Min(minDist,dist);
+                    for(int i = 0; i < ft.coords.Count - 1; i++){
+                        float dist = distancePointToSegment(worldPos, ft.coords[i], ft.coords[i + 1]);
+                        minDist = Mathf.Min(minDist, dist);
                     }
-                    if(minDist<lineWidth){
-                        float factor = 1f-(minDist/lineWidth);
-                        factor = Mathf.SmoothStep(0,1,factor);
-                        heights[y,x] += ft.elevChange*factor;
-                        heights[y,x] = Mathf.Max(0,heights[y,x]);
+                    if(minDist < lineWidth){
+                        float factor = 1f - (minDist / lineWidth);
+                        factor = Mathf.SmoothStep(0, 1, factor);
+                        heights[y, x] += ft.elevChange * factor;
+                        heights[y, x] = Mathf.Max(0, heights[y, x]);
                     }
                 }
             }
@@ -2132,29 +2161,22 @@ public class convertMap : MonoBehaviour
         }
     }
     void changeHeightOfArea(List<areaLfFeature> feats, float[,] heights, int res){
-        float slopeTolerance = 0f;
-        for(int y = 0; y < res; y++){
-            for(int x = 0; x < res; x++){
-                Vector2 worldPos = new Vector2(
-                    minX + (float)x/(res-1)*(maxX-minX),
-                    minY + (float)y/(res-1)*(maxY-minY)
-                );
-                foreach(var ft in feats){
-                    if(isPointInPolygon(worldPos, ft.coords)){
+        float invResMinusOne = 1f/(res-1);
+        float worldRangeX = maxX-minX;
+        float worldRangeY = maxY-minY;
+        foreach(var ft in feats){
+            PolygonBounds bounds = new PolygonBounds(ft.coords);
+            int startX = Mathf.Max(0, Mathf.FloorToInt((bounds.min.x - minX) / worldRangeX * (res - 1)));
+            int endX = Mathf.Min(res - 1, Mathf.CeilToInt((bounds.max.x - minX) / worldRangeX * (res - 1)));
+            int startY = Mathf.Max(0, Mathf.FloorToInt((bounds.min.y - minY) / worldRangeY * (res - 1)));
+            int endY = Mathf.Min(res - 1, Mathf.CeilToInt((bounds.max.y - minY) / worldRangeY * (res - 1)));
+            for(int y = startY; y <= endY; y++){
+                for(int x = startX; x <= endX; x++){
+                    Vector2 worldPos = new Vector2(minX+x*invResMinusOne*worldRangeX,minY+y*invResMinusOne*worldRangeY);
+                    if(isPointInPolygon(worldPos,ft.coords)){
                         heights[y,x]+=ft.elevChange;
                         heights[y,x]=Mathf.Max(heights[y,x],0);
                         continue;
-                    }
-                    float minDist = float.MaxValue;
-                    for(int i = 0; i < ft.coords.Count; i++){
-                        float dist = distancePointToSegment(worldPos, ft.coords[i],ft.coords[(i+1)%ft.coords.Count]);
-                        minDist = Mathf.Min(minDist, dist);
-                    }
-                    if(minDist < slopeTolerance){
-                        float factor = 1f-(minDist/slopeTolerance);
-                        factor = Mathf.SmoothStep(0,1,factor);
-                        heights[y,x]+=ft.elevChange*factor;
-                        heights[y,x]=Mathf.Max(0,heights[y,x]);
                     }
                 }
             }
