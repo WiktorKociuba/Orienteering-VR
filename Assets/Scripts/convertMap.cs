@@ -726,7 +726,7 @@ public class convertMap : MonoBehaviour
             }
             bestRes = res;
         }
-        return bestRes;
+        return 513;
     }
     void generateMapBounds(){
         getMapSize();
@@ -1365,9 +1365,9 @@ public class convertMap : MonoBehaviour
                 path.indexLayer = layerIndex;
                 paths.Add(path);
             }
+        }
         paintPath(paths, alphamap, alphamapWidth, alphamapHeight);
         data.SetAlphamaps(0,0,alphamap);
-        }
     }
     /*
         Path painting

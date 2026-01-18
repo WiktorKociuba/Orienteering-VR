@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections;
-using UnityEditor.UI;
 
 public class loadingScreenManager : MonoBehaviour
 {
