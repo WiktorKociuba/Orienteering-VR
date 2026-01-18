@@ -1152,7 +1152,6 @@ public class convertMap : MonoBehaviour
         float worldRangeY = maxY-minY;
         int totalPixels = resolution*resolution;
         int pixelsProcessed = 0;
-        int reportInterrval = totalPixels/10;
         for(int y = 0; y < resolution; y++){
             for(int x = 0; x < resolution; x++){
                 Vector2 worldPos = new Vector2(
@@ -1686,23 +1685,32 @@ public class convertMap : MonoBehaviour
     public bool generateGrass = true;
     public LayerMask grassLayerMask = ~0;
     private GrassComputeScript grassCompute;
-    public float grassDensityPerSquareMeter = 0.0001f;
+    public float grassDensityPerSquareMeter = 0.00001f;
     Camera grassRendererCamera;
     public Material grassShaderMaterial;
-    bool isGrassValid(Vector2 coord){
+    private float[,,] _cachedAlphamap;
+    private Dictionary<int,List<Vector2>> _grassInvalidAreas;
+    bool isGrassValid(Vector2 coord, Dictionary<int,PolygonBounds> invalidBounds){
         float colDist = 3f;
+        if(_grassInvalidAreas.ContainsKey(0)){
+            foreach(var point in _grassInvalidAreas[0]){
+                if(Vector2.Distance(point,coord)<colDist){
+                    return false;
+                }
+            }
+        }
         foreach(MapSymbol symbol in delSymbols){
             int type = isomSet[int.Parse(symbol.id)].type;
             int isomId = isomSet[int.Parse(symbol.id)].isomId;
             if((isomId >= 401 && isomId <= 404) || (isomId >= 4010 && isomId < 4050)){
                 continue;
             }
-            if(type == 0){
-                if(Vector2.Distance(symbol.coords[0],coord) < colDist){
-                    return false;
-                }
-            }
             if(type == 1){
+                if(invalidBounds.ContainsKey(symbol.GetHashCode())){
+                    if(!invalidBounds[symbol.GetHashCode()].IsInBounds(coord)){
+                        continue;
+                    }
+                }
                 for(int i = 0; i < symbol.coords.Count-1; i++){
                     Vector2 start = symbol.coords[i];
                     Vector2 end = symbol.coords[i+1];
@@ -1712,12 +1720,34 @@ public class convertMap : MonoBehaviour
                 }
             }
             if(type == 3){
+                if(invalidBounds.ContainsKey(symbol.GetHashCode())){
+                    if(!invalidBounds[symbol.GetHashCode()].IsInBounds(coord)){
+                        continue;
+                    }
+                }
                 if(isPointInPolygon(coord,symbol.coords)){
                     return false;
                 }
             }
         }
         return true;
+    }
+    void precomputeGrassInvalidAreas(){
+        _grassInvalidAreas = new Dictionary<int,List<Vector2>>();
+        float colDist = 3f;
+        foreach(MapSymbol symbol in delSymbols){
+            int type = isomSet[int.Parse(symbol.id)].type;
+            int isomId = isomSet[int.Parse(symbol.id)].isomId;
+            if((isomId>=401&&isomId<=404)||(isomId>=4010&&isomId<4050)){
+                continue;
+            }
+            if(!_grassInvalidAreas.ContainsKey(type)){
+                _grassInvalidAreas[type]=new List<Vector2>();
+            }
+            if(type==0||type==1||type==3){
+                _grassInvalidAreas[type].AddRange(symbol.coords);
+            }
+        }
     }
     void setupGrassSystem(){     
         if(!generateGrass || grassSettings == null){
@@ -1767,6 +1797,7 @@ public class convertMap : MonoBehaviour
         }
         renderMap.enabled = true;
         renderMap.DrawDiffuseMap();
+        precomputeGrassInvalidAreas();
         generateGrassPositions();
     }
     void generateGrassPositions(){
@@ -1779,44 +1810,56 @@ public class convertMap : MonoBehaviour
         Vector3 terrainPos = terrain.transform.position;
         float totalArea = terrainSize.x*terrainSize.z;
         int totalGrassCount = Mathf.RoundToInt(totalArea*grassDensityPerSquareMeter);
+        int alphamapWidth = data.alphamapWidth;
+        int alphamapHeight = data.alphamapHeight;
+        _cachedAlphamap = data.GetAlphamaps(0,0,alphamapWidth,alphamapHeight);
+        Dictionary<int,PolygonBounds> invalidBounds = new Dictionary<int,PolygonBounds>();
+        foreach(MapSymbol symbol in delSymbols){
+            int type = isomSet[int.Parse(symbol.id)].type;
+            if(type == 1||type == 3){
+                invalidBounds[symbol.GetHashCode()] = new PolygonBounds(symbol.coords);
+            }
+        }
         List<GrassData> grassDataList = new List<GrassData>();
         System.Random rand = new System.Random();
+        float invTerrainSizeX = 1f/terrainSize.x;
+        float invTerrainSizeZ = 1f/ terrainSize.z;
+        float alphamapWidthMinusOne = alphamapWidth -1;
+        float alphamapHeightMinusOne = alphamapHeight-1;
         for(int i = 0; i < totalGrassCount; i++){
             float x = terrainPos.x + (float)rand.NextDouble()*terrainSize.x;
             float z = terrainPos.z + (float)rand.NextDouble()*terrainSize.z;
-            if(!isGrassValid(new Vector2(x,z))){
+            Vector2 pos2D = new Vector2(x,z);
+            if(!isGrassValid(pos2D, invalidBounds)){
                 continue;
             }
-            Vector3 worldPos = new Vector3(x,0,z);
-            float y = terrain.SampleHeight(worldPos);
-            Vector3 normalizedPos = new Vector3(
-                (x-terrainPos.x)/terrainSize.x,
-                0,
-                (z-terrainPos.z)/terrainSize.z
-            );
-            int alphaX = Mathf.FloorToInt(normalizedPos.x * (data.alphamapWidth-1));
-            int alphaZ = Mathf.FloorToInt(normalizedPos.z * (data.alphamapHeight-1));
-            float[,,] alphamap = data.GetAlphamaps(alphaX, alphaZ,1,1);
-            if(alphamap[0,0,0] > 0.5f){
-                Vector3 normal = data.GetInterpolatedNormal(normalizedPos.x, normalizedPos.z);
+            float normX = (x-terrainPos.x)*invTerrainSizeX;
+            float normZ = (z-terrainPos.z)*invTerrainSizeZ;
+            int alphaX = Mathf.FloorToInt(normX*alphamapWidthMinusOne);
+            int alphaZ = Mathf.FloorToInt(normZ*alphamapHeightMinusOne);
+            alphaX = Mathf.Clamp(alphaX,0,alphamapWidth-1);
+            alphaZ = Mathf.Clamp(alphaZ,0,alphamapHeight-1);
+            if(_cachedAlphamap[alphaZ,alphaX,0] > 0.5f){
+                Vector3 normal = data.GetInterpolatedNormal(normX,normZ);
                 GrassData grass = new GrassData();
-                grass.position = new Vector3(x,y,z);
+                grass.position = new Vector3(x,0,z);
+                grass.position.y = terrain.SampleHeight(grass.position);
                 grass.normal = normal;
                 grass.length = new Vector2(
                     (float) rand.NextDouble(),
                     (float)rand.NextDouble()
                 );
-                Color baseColor = new Color(0.1f,0.3f,0.1f);
                 grass.color = new Vector3(
-                    baseColor.r + ((float)rand.NextDouble()-0.5f)*0.2f,
-                    baseColor.g + ((float)rand.NextDouble()-0.5f)*0.2f,
-                    baseColor.b + ((float)rand.NextDouble()-0.5f)*0.2f
+                    0.1f + ((float)rand.NextDouble()-0.5f)*0.2f,
+                    0.3f + ((float)rand.NextDouble()-0.5f)*0.2f,
+                    0.1f + ((float)rand.NextDouble()-0.5f)*0.2f
                 );
                 grassDataList.Add(grass);
             }
         }
         grassCompute.SetGrassPaintedDataList = grassDataList;
         grassCompute.Reset();
+        _cachedAlphamap = null;
     }
     /*
         Slow zones setup
@@ -2540,7 +2583,7 @@ void generateWaterLine(List<Vector2> coords, float width){
     /*
         Remove unnecessary trees
     */
-    private List<MapSymbol> delSymbols;
+    private List<MapSymbol> delSymbols = new List<MapSymbol>();
     void removeTrees(){
         TerrainData data = terrain.terrainData;
         List<TreeInstance> validTrees = new List<TreeInstance>();
