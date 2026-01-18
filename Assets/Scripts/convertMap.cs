@@ -712,7 +712,7 @@ public class convertMap : MonoBehaviour
             }
             bestRes = res;
         }
-        return 513;
+        return bestRes;
     }
     void generateMapBounds(){
         TerrainData terrainData = new TerrainData();
