@@ -715,14 +715,12 @@ public class convertMap : MonoBehaviour
         return 513;
     }
     void generateMapBounds(){
-        System.Diagnostics.Stopwatch timer = System.Diagnostics.Stopwatch.StartNew();
         TerrainData terrainData = new TerrainData();
         terrainData.heightmapResolution = calculateHeightmapResolution();
         terrainData.size = new Vector3(math.abs(maxX-minX), 0, math.abs(maxY-minY));
         GameObject terrainObject = Terrain.CreateTerrainGameObject(terrainData);
         terrainObject.transform.position = new Vector3(minX, 0, minY);
         terrain = terrainObject.GetComponent<Terrain>();
-        print($"Time {timer.ElapsedMilliseconds}ms");
     }
     bool isContourClosed(MapSymbol contour, float threshold = 1f){
         if(contour.coords.Count < 3)
@@ -896,21 +894,38 @@ public class convertMap : MonoBehaviour
     }
     float IDWInterpolation(Vector2 worldPos, List<ElevationPoint> heightPoints){
         float power = 2f;
-        int kNearest = 20;
-        List <(float dist, float height)> distances = new List<(float,float)>();
+        int kNearest = 10;
+        int count = Mathf.Min(kNearest, heightPoints.Count);
+        var nearestPoints = new (float distSq,float height)[count];
+        int foundCount = 0;
         foreach(var point in heightPoints){
-            float dist = Vector2.Distance(worldPos, point.coords);
-            if(dist < 0.01f) return point.height;
-            distances.Add((dist, point.height));
+            float dx = worldPos.x-point.coords.x;
+            float dy = worldPos.y-point.coords.y;
+            float distSq = dx*dx+dy*dy;
+            if(distSq < 1e-2)
+                return point.height;
+            if(foundCount < count){
+                nearestPoints[foundCount++] = (distSq,point.height);
+                if(foundCount == count){
+                    System.Array.Sort(nearestPoints,(a,b)=>a.distSq.CompareTo(b.distSq));
+                }
+            }
+            else if(distSq < nearestPoints[count-1].distSq){
+                nearestPoints[count-1] = (distSq, point.height);
+                for(int i = count -1; i > 0 && nearestPoints[i].distSq < nearestPoints[i-1].distSq;i--){
+                    var temp = nearestPoints[i];
+                    nearestPoints[i] = nearestPoints[i-1];
+                    nearestPoints[i-1] = temp;
+                }
+            }
         }
-        distances.Sort((a,b) => a.dist.CompareTo(b.dist));
         float sumWeights = 0f;
         float sumValues = 0f;
-        int count = Mathf.Min(kNearest, distances.Count);
-        for(int i = 0; i < count; i++){
-            float weight = 1f/Mathf.Pow(distances[i].dist, power);
+        for(int i = 0; i < foundCount; i++){
+            float dist = Mathf.Sqrt(nearestPoints[i].distSq);
+            float weight = 1f/Mathf.Pow(dist, power);
             sumWeights += weight;
-            sumValues += weight * distances[i].height;
+            sumValues += weight * nearestPoints[i].height;
         }
         return sumValues/sumWeights;
     }
@@ -923,9 +938,8 @@ public class convertMap : MonoBehaviour
         );
         Vector2 offset = direction * 7f;
         Vector2 testPoint = slopeLine.coords[0] + offset;
-        print(slopeLine.rotation);
         if(isPointInPolygon(testPoint, closeOpenContour(contour.coords,contour.isClosed,0)))
-            {print(contour.isClosed);
+            {
             return 2;}
         return 1;
     }
@@ -1044,6 +1058,11 @@ public class convertMap : MonoBehaviour
             }
         }
     }
+    private class ContourCache{
+        public List<Vector2> closedCoords;
+        public PolygonBounds bounds;
+        public float elevation;
+    }
     void generateHeightMap(){
         List<ContourData> contours = new List<ContourData>();
         List<MapSymbol> slopeLines = new List<MapSymbol>();
@@ -1069,25 +1088,35 @@ public class convertMap : MonoBehaviour
             contours[i].nestLevel = findNestingLevel(contours[i], contours);
         }
         assignElevationLevels(contours);
+        Dictionary<ContourData,ContourCache> contourCache = new Dictionary<ContourData,ContourCache>();
+        foreach(ContourData contour in contours){
+            ContourCache cache = new ContourCache();
+            if(contour.isClosed){
+                cache.closedCoords = contour.coords;
+            }
+            else{
+                int offsetIndex = getOffsetIndex(contour,contour,contours);
+                cache.closedCoords = closeOpenContour(contour.coords,contour.isClosed,offsetIndex);
+            }
+            cache.bounds = new PolygonBounds(cache.closedCoords);
+            cache.elevation = 5f*contour.nestLevel;
+            contourCache[contour] = cache;
+        }
         List<ElevationPoint> heightPoints = new List<ElevationPoint>();
-        TerrainData data = terrain.terrainData;
-        terrain.gameObject.layer = 7;
-        int resolution = data.heightmapResolution;
-        float[,] heights = new float[resolution,resolution];
-        float minElev = float.MaxValue;
+        float minElev = 0f;
         float maxElev = float.MinValue;
         float sampleInterval = 5f;
-        for(int i = 0; i < contours.Count; i++){
-            int offsetIndex = getOffsetIndex(contours[i],contours[i],contours);
-            List<Vector2> coords = closeOpenContour(contours[i].coords, contours[i].isClosed,offsetIndex);
+        foreach(ContourData contour in contours){
+            ContourCache cache = contourCache[contour];
+            List<Vector2> coords = cache.closedCoords;
             if(coords.Count < 2) continue;
-            float elevation = 5f * contours[i].nestLevel;
+            float elevation = cache.elevation;
             float accumulatedDist = 0f;
             ElevationPoint first = new ElevationPoint();
             first.coords = coords[0];
             first.height = elevation;
             heightPoints.Add(first);
-            int segmentCount = contours[i].isClosed ? coords.Count : coords.Count -1;
+            int segmentCount = contour.isClosed ? coords.Count : coords.Count -1;
             for(int j = 0; j < segmentCount; j++){
                 Vector2 segmentStart = coords[j];
                 Vector2 segmentEnd = coords[(j+1)%coords.Count];
@@ -1107,32 +1136,35 @@ public class convertMap : MonoBehaviour
                 }
                 accumulatedDist += segmentLength - distanceAlongSegment;
             }
-            if(elevation > maxElev) maxElev = elevation;
-            if(elevation < minElev) minElev = elevation;
+            maxElev = Mathf.Max(maxElev,elevation);
         }
-        minElev = 0;
         if(heightPoints.Count == 0){
             return;
         }
+        TerrainData data = terrain.terrainData;
+        terrain.gameObject.layer = 7;
+        int resolution = data.heightmapResolution;
+        float[,] heights = new float[resolution,resolution];
         float elevRange = maxElev-minElev;
         if(elevRange == 0) elevRange = 1;
+        float invResMinusOne = 1f/(resolution-1);
+        float worldRangeX = maxX-minX;
+        float worldRangeY = maxY-minY;
+        int totalPixels = resolution*resolution;
+        int pixelsProcessed = 0;
+        int reportInterrval = totalPixels/10;
         for(int y = 0; y < resolution; y++){
             for(int x = 0; x < resolution; x++){
                 Vector2 worldPos = new Vector2(
-                    minX+(float)x/(resolution-1)*(maxX-minX),
-                    minY+(float)y /(resolution-1)*(maxY-minY)
+                    minX+x*invResMinusOne*worldRangeX,
+                    minY+y*invResMinusOne*worldRangeY
                 );
                 bool insideAnyContour = false;
                 foreach(ContourData contour in contours){
-                    List<Vector2> testCoords;
-                    if(contour.isClosed){
-                        testCoords = contour.coords;
-                    }
-                    else{
-                        int offsetIndex = getOffsetIndex(contour, contour, contours);
-                        testCoords = closeOpenContour(contour.coords, contour.isClosed, offsetIndex);
-                    }
-                    if(isPointInPolygon(worldPos, testCoords)){
+                    ContourCache cache = contourCache[contour];
+                    if(!cache.bounds.IsInBounds(worldPos))
+                        continue;
+                    if(isPointInPolygon(worldPos, cache.closedCoords)){
                         insideAnyContour = true;
                         break;
                     }
@@ -1146,18 +1178,42 @@ public class convertMap : MonoBehaviour
                     float nearestElev = 0;
                     Vector2 nearestContourPoint = Vector2.zero;
                     foreach(ContourData contour in contours){
+                        ContourCache cache = contourCache[contour];
+                        float expandDist = 50f;
+                        if(worldPos.x < cache.bounds.min.x - expandDist ||
+                           worldPos.x > cache.bounds.max.x + expandDist ||
+                           worldPos.y < cache.bounds.min.y - expandDist ||
+                           worldPos.y > cache.bounds.max.y + expandDist)
+                            continue;
                         for(int j = 0; j < contour.coords.Count - 1; j++){
-                            float dist = distancePointToSegment(worldPos, contour.coords[j], contour.coords[j+1]);
-                            if(dist < nearestDist){
-                                nearestDist = dist;
-                                nearestElev = 5f * contour.nestLevel;
-                                Vector2 ab = contour.coords[j+1]-contour.coords[j];
-                                float lenSq = Vector2.Dot(ab,ab);
-                                float t = Mathf.Clamp01(Vector2.Dot(worldPos-contour.coords[j], ab)/lenSq);
-                                nearestContourPoint = contour.coords[j]+t*ab;
+                            Vector2 a = contour.coords[j];
+                            Vector2 b = contour.coords[j+1];
+                            Vector2 ab = b-a;
+                            float lenSq = ab.x*ab.x+ab.y*ab.y;
+                            if(lenSq<1e-6f){
+                                float dx = worldPos.x-a.x;
+                                float dy = worldPos.y-a.y;
+                                float dSq = dx*dx+dy*dy;
+                                if(dSq<nearestDist){
+                                    nearestDist = dSq;
+                                    nearestElev=cache.elevation;
+                                    nearestContourPoint=a;
+                                }
+                                continue;
+                            }
+                            float t = Mathf.Clamp01(((worldPos.x-a.x)*ab.x+(worldPos.y-a.y)*ab.y)/lenSq);
+                            Vector2 closest = new Vector2(a.x+t*ab.x,a.y+t*ab.y);
+                            float dx2 = worldPos.x-closest.x;
+                            float dy2 = worldPos.y-closest.y;
+                            float distSq = dx2*dx2+dy2*dy2;
+                            if(distSq<nearestDist){
+                                nearestDist = distSq;
+                                nearestElev = cache.elevation;
+                                nearestContourPoint = closest;
                             }
                         }
                     }
+                    nearestDist = Mathf.Sqrt(nearestDist);
                     float distToEdge = Mathf.Min(
                         Mathf.Abs(worldPos.x - minX),
                         Mathf.Abs(worldPos.x - maxX),
@@ -2334,7 +2390,6 @@ void generateWaterLine(List<Vector2> coords, float width){
         MapSymbol simpleCourse = new MapSymbol();
         bool isSimple = false;
         foreach(var control in courseSym){
-            print(control.coords[0].x);
             int id = int.Parse(control.id);
             if(id == 1){
                 start = control;
@@ -2449,10 +2504,6 @@ void generateWaterLine(List<Vector2> coords, float width){
         }
         Vector3 spawnPos = new Vector3(startPos.x+7f,0,startPos.z);
         spawnPos.y = terrain.SampleHeight(spawnPos);
-        print("llksl");
-        print(spawnPos.x);
-        print(spawnPos.y);
-        print(spawnPos.z);
         Vector3 direction = startPos-spawnPos;
         direction.y = 0;
         float angle = Mathf.Atan2(direction.x,direction.z)*Mathf.Rad2Deg;
@@ -2665,7 +2716,6 @@ void generateWaterLine(List<Vector2> coords, float width){
                 MapSymbol symbol = ParseObject(symbolNode, nsmgr);
                 if(symbol != null && symbol.coords.Count > 0){
                     courseSym.Add(symbol);
-                    print(symbol.coords);
                 }
             }
         }
@@ -2823,7 +2873,6 @@ void generateWaterLine(List<Vector2> coords, float width){
     }
     void CreateAreaObject(isomSymbol symbol, List<Vector2> coords)
     {
-        print(symbol.id);
         if (coords.Count < 3)
         {
             Debug.LogWarning($"Too few coordinates for {symbol.isomId}");
