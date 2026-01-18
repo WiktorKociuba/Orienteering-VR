@@ -142,6 +142,7 @@ public class clickMenuPC : MonoBehaviour
                 level1.SetActive(false);
                 demoMap.gameObject.SetActive(true);
                 map1.gameObject.SetActive(true);
+                mapGeneration.SetActive(true);
             }
             else if(btn.name == "backMap1")
             {
@@ -151,6 +152,7 @@ public class clickMenuPC : MonoBehaviour
                 nightmodeenable.SetActive(false);
                 demoMap.gameObject.SetActive(true);
                 map1.gameObject.SetActive(true);
+                mapGeneration.SetActive(true);
             }
             else if(btn.name == "backMapMenu")
             {

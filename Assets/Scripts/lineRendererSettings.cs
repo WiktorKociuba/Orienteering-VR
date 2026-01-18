@@ -184,6 +184,7 @@ public class lineRendererSettings : MonoBehaviour
                 level1.SetActive(false);
                 demoMap.gameObject.SetActive(true);
                 map1.gameObject.SetActive(true);
+                mapGeneration.SetActive(true);
             }
             else if(btn.name == "backMap1")
             {
@@ -193,6 +194,7 @@ public class lineRendererSettings : MonoBehaviour
                 nightmodeenable.SetActive(false);
                 demoMap.gameObject.SetActive(true);
                 map1.gameObject.SetActive(true);
+                mapGeneration.SetActive(true);
             }
             else if(btn.name == "backMapMenu")
             {
