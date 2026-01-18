@@ -2292,6 +2292,7 @@ void generateWaterLine(List<Vector2> coords, float width){
     public GameObject controlPrefab;
     public GameObject PC;
     public GameObject VR;
+    public GameObject VRPar;
     private Vector3 startPos;
     public GameObject VRObjects;
     public bool isVr = false;
@@ -2414,8 +2415,12 @@ void generateWaterLine(List<Vector2> coords, float width){
             string errorText = $"Control(s) {string.Join(", ",unknownCoords)} might not be accessible. \n Consider changing the position a little bit.";
             StartCoroutine(displayError(errorText));
         }
-        Vector3 spawnPos = new Vector3(startPos.x+3f,0,startPos.z);
+        Vector3 spawnPos = new Vector3(startPos.x+7f,0,startPos.z);
         spawnPos.y = terrain.SampleHeight(spawnPos);
+        print("llksl");
+        print(spawnPos.x);
+        print(spawnPos.y);
+        print(spawnPos.z);
         Vector3 direction = startPos-spawnPos;
         direction.y = 0;
         float angle = Mathf.Atan2(direction.x,direction.z)*Mathf.Rad2Deg;
@@ -2427,11 +2432,13 @@ void generateWaterLine(List<Vector2> coords, float width){
         PC.GetComponent<MovePlayerPC>().enabled = true;
         VR.GetComponent<MovePlayer>().enabled = false;
         VR.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+        VR.GetComponent<Rigidbody>().isKinematic = true;
         VR.GetComponent<Rigidbody>().position = spawnPos;
         VR.GetComponent<Rigidbody>().rotation = lookRotation;
+        VR.GetComponent<Rigidbody>().isKinematic = false;
         VR.GetComponent<MovePlayer>().enabled = true;
-        VRObjects.transform.position = spawnPos;
-        VRObjects.transform.rotation = lookRotation;
+        vrObj.transform.position = spawnPos;
+        vrObj.transform.rotation = lookRotation;
     }
     public GameObject popup;
     public TextMeshProUGUI popupText;
@@ -2439,6 +2446,13 @@ void generateWaterLine(List<Vector2> coords, float width){
         popup.SetActive(true);
         popupText.text = text;
         yield return null;
+    }
+    IEnumerator getToGround(Rigidbody rb, float duration, float gravityMultiplier){
+        float originalGravityScale = 1f;
+        float orriginalDrag = rb.linearDamping;
+        rb.AddForce(Vector3.down*gravityMultiplier*100f, ForceMode.Impulse);
+        yield return new WaitForSecondsRealtime(duration);
+        rb.linearDamping = orriginalDrag;
     }
     /*
         Remove unnecessary trees
@@ -2951,6 +2965,8 @@ void generateWaterLine(List<Vector2> coords, float width){
         fadeToBlack.SetActive(false);
         player.SetActive(true);
         vrObj.SetActive(true);
+        if(isVr)
+            StartCoroutine(getToGround(VR.GetComponent<Rigidbody>(),0.2f, 1000f));
         yield return new WaitForSecondsRealtime(5f);
         popup.SetActive(false);
     }
