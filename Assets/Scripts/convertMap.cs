@@ -10,6 +10,7 @@ using Unity.VisualScripting;
 using UnityEngine.Tilemaps;
 using System.Data.Common;
 using TMPro;
+using UnityEngine.Rendering;
 
 public class convertMap : MonoBehaviour
 {
@@ -2517,6 +2518,41 @@ void generateWaterLine(List<Vector2> coords, float width){
             }
         }
     }
+    /*
+        Post process
+    */
+    public int probeResolution = 256;
+    public float probeIntensity = 1f;
+    public bool useBoxProjection = true;
+    void setupReflectionProbe(){
+        Vector3 terrainSize = terrain.terrainData.size;
+        Vector3 terrainPos = terrain.transform.position;
+        Vector3 terrainCenter = terrainPos + terrainSize * 0.5f;
+        GameObject probeObj = new GameObject("Reflection Probe");
+        probeObj.transform.position = terrainCenter;
+        ReflectionProbe probe = probeObj.AddComponent<ReflectionProbe>();
+        probe.mode = UnityEngine.Rendering.ReflectionProbeMode.Baked;
+        probe.refreshMode = UnityEngine.Rendering.ReflectionProbeRefreshMode.ViaScripting;
+        probe.resolution = probeResolution;
+        probe.intensity = probeIntensity;
+        probe.importance = 1;
+        probe.boxProjection = useBoxProjection;
+        terrainSize.y +=30;
+        probe.size = terrainSize;
+        probe.center = Vector3.zero;
+        probe.cullingMask = ~(1<<LayerMask.NameToLayer("UI"));
+        probe.RenderProbe();
+    }
+    void setupFog(){
+        RenderSettings.fog = true;
+        RenderSettings.fogMode = FogMode.ExponentialSquared;
+        RenderSettings.fogColor = new Color(0.3123887f,0.3855529f,0.490566f,0.5f);
+        RenderSettings.fogDensity = 0.015f;
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
+        RenderSettings.ambientSkyColor = new Color(0.6f, 0.7f, 0.8f);
+        RenderSettings.ambientEquatorColor = new Color(0.5f, 0.5f, 0.5f);
+        RenderSettings.ambientGroundColor = new Color(0.3f, 0.3f, 0.3f);
+    }
     // ISOM 2017 symbol set (for now)
     IEnumerator parseOMAP()
     {
@@ -2639,6 +2675,8 @@ void generateWaterLine(List<Vector2> coords, float width){
             new Vector2(maxX,maxY),
             new Vector2(maxX,minY)
         },3);
+        setupReflectionProbe();
+        setupFog();
         yield return null;
         if(loadingBar != null)
             loadingBar.fillAmount = 1f;
