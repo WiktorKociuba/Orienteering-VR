@@ -11,6 +11,8 @@ using UnityEngine.Tilemaps;
 using System.Data.Common;
 using TMPro;
 using UnityEngine.Rendering;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class convertMap : MonoBehaviour
 {
@@ -164,13 +166,13 @@ public class convertMap : MonoBehaviour
     GameObject firstAidPost; //712
     GameObject refreshmentPoint; //713
     GameObject continuingPoint; //715
-    public TerrainLayer grassLayer;
-    public TerrainLayer sandLayer;
-    public TerrainLayer rockLayer;
-    public TerrainLayer waterLayer;
-    public TerrainLayer pathLayer;
-    public TerrainLayer asphaltLayer;
-    public TerrainLayer marshLayer;
+    TerrainLayer grassLayer;
+    TerrainLayer sandLayer;
+    TerrainLayer rockLayer;
+    TerrainLayer waterLayer;
+    TerrainLayer pathLayer;
+    TerrainLayer asphaltLayer;
+    TerrainLayer marshLayer;
     [Header("Map Paths")]
     public string filePath;
     public string coursePath;
@@ -698,6 +700,13 @@ public class convertMap : MonoBehaviour
         filePath = routeManager.mapFilePath;
         coursePath = routeManager.courseFilePath;
         mapImagePath = routeManager.mapImagePath;
+        grassLayer = Resources.Load<TerrainLayer>("TerrainLayers/grassLayer");
+        sandLayer = Resources.Load<TerrainLayer>("TerrainLayers/sandLayer");
+        rockLayer = Resources.Load<TerrainLayer>("TerrainLayers/rockLayer");
+        waterLayer = Resources.Load<TerrainLayer>("TerrainLayers/waterLayer");
+        pathLayer = Resources.Load<TerrainLayer>("TerrainLayers/pathLayer");
+        asphaltLayer = Resources.Load<TerrainLayer>("TerrainLayers/asphaltLayer");
+        marshLayer = Resources.Load<TerrainLayer>("TerrainLayers/marshLayer");
         StartCoroutine(generateTerrain());
     }
     int calculateHeightmapResolution(){
@@ -722,6 +731,9 @@ public class convertMap : MonoBehaviour
         GameObject terrainObject = Terrain.CreateTerrainGameObject(terrainData);
         terrainObject.transform.position = new Vector3(minX, 0, minY);
         terrain = terrainObject.GetComponent<Terrain>();
+        Material terrainMaterial = new Material(Shader.Find("Universal Render Pipeline/Terrain/Lit"));
+        terrainMaterial.enableInstancing = true;
+        terrain.materialTemplate = terrainMaterial;
     }
     bool isContourClosed(MapSymbol contour, float threshold = 1f){
         if(contour.coords.Count < 3)
@@ -1467,7 +1479,6 @@ public class convertMap : MonoBehaviour
         terrain.heightmapPixelError = 5f;
         terrain.basemapDistance = 500f;
         terrain.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
-        terrain.materialTemplate.enableInstancing = true;
     }
     void setupTreePrototypes(){
         TerrainData data = terrain.terrainData;
