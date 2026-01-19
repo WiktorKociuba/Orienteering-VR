@@ -170,6 +170,7 @@ public class convertMap : MonoBehaviour
     public TerrainLayer waterLayer;
     public TerrainLayer pathLayer;
     public TerrainLayer asphaltLayer;
+    public TerrainLayer marshLayer;
     [Header("Map Paths")]
     public string filePath;
     public string coursePath;
@@ -1194,6 +1195,8 @@ public class convertMap : MonoBehaviour
             layers.Add(pathLayer);
         if(asphaltLayer != null)
             layers.Add(asphaltLayer);
+        if(marshLayer != null)
+            layers.Add(marshLayer);
         data.terrainLayers = layers.ToArray();
     }
     int getTerrainLayerIndex(int id){
@@ -1211,6 +1214,9 @@ public class convertMap : MonoBehaviour
         }
         if(id >= 105 && id <= 109 && id !=107){
             return 4;
+        }
+        if(id >= 63 && id <= 70){
+            return 5;
         }
         return -1;
     }
@@ -1256,6 +1262,37 @@ public class convertMap : MonoBehaviour
         }
     }
     private List<List<Vector2>> treeCoords = new List<List<Vector2>>();
+    List<Vector2> lineToArea(List<Vector2> lineCoords,float width){
+        if(lineCoords.Count < 2)
+            return new List<Vector2>();
+        List<Vector2> leftSide = new List<Vector2>();
+        List<Vector2> rightSide = new List<Vector2>();
+        float halfWidth = width/2f;
+        for(int i = 0; i < lineCoords.Count; i++){
+            Vector2 current = lineCoords[i];
+            Vector2 perpendicular;
+            if(i == 0){
+                Vector2 forward = (lineCoords[i+1]-current).normalized;
+                perpendicular = new Vector2(-forward.y,forward.x);
+            }
+            else if(i == lineCoords.Count -1){
+                Vector2 forward = (current-lineCoords[i-1]).normalized;
+                perpendicular = new Vector2(-forward.y,forward.x);
+            }
+            else{
+                Vector2 forward1 = (current-lineCoords[i-1]).normalized;
+                Vector2 forward2 = (lineCoords[i+1]-current).normalized;
+                Vector2 avgForward = (forward1+forward2).normalized;
+                perpendicular = new Vector2(-avgForward.y,avgForward.x);
+            }
+            leftSide.Add(current+perpendicular*halfWidth);
+            rightSide.Add(current-perpendicular*halfWidth);
+        }
+        List<Vector2> areaCoords = new List<Vector2>(leftSide);
+        rightSide.Reverse();
+        areaCoords.AddRange(rightSide);
+        return areaCoords;
+    }
     void paintTerrain(){
         TerrainData data = terrain.terrainData;
         int alphamapWidth = data.alphamapWidth;
@@ -1272,6 +1309,13 @@ public class convertMap : MonoBehaviour
             isomSymbol refSym = isomSet[int.Parse(symbol.id)];
             int layerIndex = getTerrainLayerIndex(int.Parse(symbol.id));
             int id = int.Parse(symbol.id);
+            if(id == 68){
+                float marshWidth = 2.5f;
+                List<Vector2> areaCoords = lineToArea(symbol.coords,marshWidth);
+                if(layerIndex >= 0 && areaCoords.Count > 0){
+                    paintArea(alphamap,areaCoords,layerIndex,alphamapWidth,alphamapHeight);
+                }
+            }
             if(refSym.type == 2){
                 if(layerIndex >= 0){
                     paintArea(alphamap, symbol.coords, layerIndex, alphamapWidth, alphamapHeight);
