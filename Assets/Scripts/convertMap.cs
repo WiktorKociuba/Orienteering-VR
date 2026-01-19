@@ -1169,82 +1169,7 @@ public class convertMap : MonoBehaviour
                     }
                 }
                 float elevation;
-                if(insideAnyContour){
-                    elevation = IDWInterpolation(worldPos, heightPoints);
-                }
-                else{
-                    float nearestDist = float.MaxValue;
-                    float nearestElev = 0;
-                    Vector2 nearestContourPoint = Vector2.zero;
-                    foreach(ContourData contour in contours){
-                        ContourCache cache = contourCache[contour];
-                        float expandDist = 50f;
-                        if(worldPos.x < cache.bounds.min.x - expandDist ||
-                           worldPos.x > cache.bounds.max.x + expandDist ||
-                           worldPos.y < cache.bounds.min.y - expandDist ||
-                           worldPos.y > cache.bounds.max.y + expandDist)
-                            continue;
-                        for(int j = 0; j < contour.coords.Count - 1; j++){
-                            Vector2 a = contour.coords[j];
-                            Vector2 b = contour.coords[j+1];
-                            Vector2 ab = b-a;
-                            float lenSq = ab.x*ab.x+ab.y*ab.y;
-                            if(lenSq<1e-6f){
-                                float dx = worldPos.x-a.x;
-                                float dy = worldPos.y-a.y;
-                                float dSq = dx*dx+dy*dy;
-                                if(dSq<nearestDist){
-                                    nearestDist = dSq;
-                                    nearestElev=cache.elevation;
-                                    nearestContourPoint=a;
-                                }
-                                continue;
-                            }
-                            float t = Mathf.Clamp01(((worldPos.x-a.x)*ab.x+(worldPos.y-a.y)*ab.y)/lenSq);
-                            Vector2 closest = new Vector2(a.x+t*ab.x,a.y+t*ab.y);
-                            float dx2 = worldPos.x-closest.x;
-                            float dy2 = worldPos.y-closest.y;
-                            float distSq = dx2*dx2+dy2*dy2;
-                            if(distSq<nearestDist){
-                                nearestDist = distSq;
-                                nearestElev = cache.elevation;
-                                nearestContourPoint = closest;
-                            }
-                        }
-                    }
-                    nearestDist = Mathf.Sqrt(nearestDist);
-                    float distToEdge = Mathf.Min(
-                        Mathf.Abs(worldPos.x - minX),
-                        Mathf.Abs(worldPos.x - maxX),
-                        Mathf.Abs(worldPos.y - minY),
-                        Mathf.Abs(worldPos.y - maxY)
-                    );
-                    float contourDistToEdge = Mathf.Min(
-                        Mathf.Abs(nearestContourPoint.x - minX),
-                        Mathf.Abs(nearestContourPoint.x-maxX),
-                        Mathf.Abs(nearestContourPoint.y-minY),
-                        Mathf.Abs(nearestContourPoint.y-maxY)
-                    );
-                    float edgeThreshold = 20f;
-                    float edgeFalloff = nearestDist/edgeThreshold;
-                    float edgeElev = nearestElev * Mathf.Max(0.3f,1f-edgeFalloff*0.7f);
-                    float totalDist = nearestDist+distToEdge;
-                    float tNormal =nearestDist/totalDist;
-                    float normalElev;
-                    if(tNormal <= 0.5f){
-                        normalElev = nearestElev*(1f-2f*tNormal);
-                    }
-                    else{
-                        normalElev = 0;
-                    }
-                    if(contourDistToEdge < edgeThreshold ){
-                        float blendFactor = contourDistToEdge/edgeThreshold;
-                        elevation = Mathf.Lerp(edgeElev,normalElev,blendFactor);
-                    }
-                    else{
-                        elevation = normalElev;
-                    }
-                }
+                elevation = IDWInterpolation(worldPos, heightPoints);
                 heights[y,x] = (elevation-minElev)/elevRange;
             }
         }
@@ -1955,6 +1880,7 @@ public class convertMap : MonoBehaviour
     {
         public List<Vector2> coords;
         public float elevChange;
+        public float avHeight;
         public int id;
     }
     void processLandformFeatures(){
@@ -2127,8 +2053,8 @@ public class convertMap : MonoBehaviour
                 case 301:
                     alft.coords = symbol.coords;
                     alft.elevChange = -1f/terrainMaxHeight;
+                    alft.avHeight = generateWaterArea(symbol.coords)/terrainMaxHeight;
                     areaFeatures.Add(alft);
-                    generateWaterArea(symbol.coords);
                     continue;
                 case 2031:
                     ptft.coords = symbol.coords[0];
@@ -2273,7 +2199,7 @@ public class convertMap : MonoBehaviour
                 for(int x = startX; x <= endX; x++){
                     Vector2 worldPos = new Vector2(minX+x*invResMinusOne*worldRangeX,minY+y*invResMinusOne*worldRangeY);
                     if(isPointInPolygon(worldPos,ft.coords)){
-                        heights[y,x]+=ft.elevChange;
+                        heights[y,x] = ft.avHeight+ft.elevChange;
                         heights[y,x]=Mathf.Max(heights[y,x],0);
                         continue;
                     }
@@ -2345,7 +2271,7 @@ void generateWaterLine(List<Vector2> coords, float width){
         }
     }
 }
-    void generateWaterArea(List<Vector2> coords){
+    float generateWaterArea(List<Vector2> coords){
         float minY = coords[0].y, maxY=coords[0].y, minX=coords[0].x, maxX=coords[0].x, avHeight = float.MaxValue;
         foreach(var coord in coords){
             minY = Mathf.Min(minY, coord.y);
@@ -2360,7 +2286,7 @@ void generateWaterLine(List<Vector2> coords, float width){
         MeshFilter meshFilter = waterPlane.GetComponent<MeshFilter>();
         if(meshFilter == null || meshFilter.sharedMesh == null){
             Debug.LogWarning("Check water prefab");
-            return;
+            return 0;
         }
         spawnSlowZones(coords,3);
         Bounds bounds = meshFilter.sharedMesh.bounds;
@@ -2405,6 +2331,7 @@ void generateWaterLine(List<Vector2> coords, float width){
                 }
             }
         }
+        return avHeight;
     }
     Vector3 getTerrainNormal(Vector3 pos){
         TerrainData data = terrain.terrainData;
@@ -2929,7 +2856,23 @@ void generateWaterLine(List<Vector2> coords, float width){
             if(coord.y<minYBox) minYBox = coord.y;
             if(coord.y>maxYBox) maxYBox = coord.y;
         }
-        int density = 1;
+        float density = 0.1f;
+        if(symbol.isomId == 208){
+            density = 0.04f;
+        }
+        else if(symbol.isomId == 209){
+            density = 0.07f;
+        }
+        else if(symbol.isomId == 210){
+            density = 0.3f;
+        }
+        else if(symbol.isomId == 211){
+            density = 0.6f;
+        }
+        else if(symbol.isomId == 212)
+        {
+            density = 0.9f;
+        }
         float width = maxXBox-minXBox;
         float height = maxYBox-minYBox;
         float area = Mathf.Abs(maxXBox-minXBox)*Mathf.Abs(maxYBox-minYBox);
