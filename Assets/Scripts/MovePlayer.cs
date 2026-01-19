@@ -21,7 +21,6 @@ public class MovePlayer : MonoBehaviour
     public int slowZone;
     public GameObject camera;
     public AudioSource runningAudioSource;
-
     public float maxSpeedConst;
     private Vector3 movementDirection;
     private float speed = 0.0f;

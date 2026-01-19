@@ -22,7 +22,7 @@ MonoBehaviour:
   bottomWidth: 0.1
   MinWidth: 0.108
   MinHeight: 0.108
-  MaxWidth: 0.434
+  MaxWidth: 0.2
   MaxHeight: 0.428
   windSpeed: 2
   windStrength: 0.05
