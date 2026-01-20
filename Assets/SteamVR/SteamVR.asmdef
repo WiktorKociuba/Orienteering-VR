@@ -8,7 +8,9 @@
     ],
     "includePlatforms": [],
     "excludePlatforms": [
-        "Android"
+        "Android",
+        "macOSStandalone",
+        "macOSStandaloneServer"
     ],
     "allowUnsafeCode": false,
     "overrideReferences": false,
