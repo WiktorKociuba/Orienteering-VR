@@ -2406,6 +2406,7 @@ void generateWaterLine(List<Vector2> coords, float width){
     public GameObject PC;
     public GameObject VR;
     public GameObject VRPar;
+    public GameObject needle;
     private Vector3 startPos;
     public GameObject VRObjects;
     public bool isVr = false;
@@ -2547,6 +2548,7 @@ void generateWaterLine(List<Vector2> coords, float width){
         VR.GetComponent<MovePlayer>().enabled = true;
         vrObj.transform.position = spawnPos;
         vrObj.transform.rotation = lookRotation;
+        needle.transform.rotation = Quaternion.Euler(0,-180,0);
     }
     public GameObject popup;
     public TextMeshProUGUI popupText;
