@@ -42,6 +42,7 @@ public class clickMenuPC : MonoBehaviour
     private int tutorialIndex = 0;
     public void OnClick()
     {
+        print("here");
         if (btn != null)
         {
             if (btn.name == "Start")
@@ -294,7 +295,7 @@ public class clickMenuPC : MonoBehaviour
     {
         if(Input.GetMouseButtonDown(0))
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            Ray ray = this.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
             if(Physics.Raycast(ray, out hit))
             {
