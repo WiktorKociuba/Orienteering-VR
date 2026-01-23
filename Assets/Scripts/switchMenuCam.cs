@@ -4,6 +4,7 @@ public class switchMenuCam : MonoBehaviour
 {
     public GameObject moveCam;
     public GameObject staticCam;
+    public GrassComputeScript grassCompute;
     private InputAction changeStateBut;
     private bool flag;
     void Start(){

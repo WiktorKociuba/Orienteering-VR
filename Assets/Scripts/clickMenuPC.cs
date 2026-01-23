@@ -295,7 +295,7 @@ public class clickMenuPC : MonoBehaviour
     {
         if(Input.GetMouseButtonDown(0))
         {
-            Ray ray = this.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
+            Ray ray = Camera.main.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
             if(Physics.Raycast(ray, out hit))
             {
